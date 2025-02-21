@@ -10,9 +10,7 @@ def ExeQuery(query, params=()):
 
 @app.route("/")
 def home():
-
-    results = ExeQuery("SELECT * FROM test_table ORDER BY rizz DESC;")
-    return render_template("main.html", stuff=results)
+    return render_template("main.html")
 
 if __name__ == "__main__":
     app.run(debug=True)
