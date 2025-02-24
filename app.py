@@ -20,7 +20,7 @@ def crazy():
 
 @app.route("/<int:id>")
 def num(id):
-    return render_template("main.html", string="hello dlrow" * id)
+    return render_template("main.html", string=" ".join(["hello dlrow" for i in range(id)]))
 
 
 @app.route("/<string:strin>")
@@ -30,7 +30,12 @@ def printstring(strin):
 
 @app.route("/<string:string>/<int:id>")
 def repeatstring(string, id):
-    return render_template("main.html", string=string * id)
+    return render_template("main.html", string=" ".join([string for i in range(id)]))
+
+
+@app.route("/demonlist")
+def demonlist():
+    return render_template("demonlist.html", params=ExeQuery("SELECT placement, name FROM demonlist ORDER BY placement ASC;"))
 
 
 if __name__ == "__main__":
