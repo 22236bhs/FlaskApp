@@ -33,10 +33,6 @@ def repeatstring(string, id):
     return render_template("main.html", string=" ".join([string for _ in range(id)]))
 
 
-@app.route("/demonlist")
-def demonlist():
-    return render_template("demonlist.html", params=ExeQuery("SELECT placement, name FROM demonlist ORDER BY placement ASC;"))
-
 
 @app.route("/lethal")
 def lethal():
