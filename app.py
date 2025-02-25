@@ -15,12 +15,12 @@ def home():
 
 @app.route("/crazy")
 def crazy():
-    return render_template("main.html", string="crazy")
+    return render_template("main.html", string="this is crazy")
 
 
 @app.route("/<int:id>")
 def num(id):
-    return render_template("main.html", string=" ".join(["hello dlrow" for i in range(id)]))
+    return render_template("main.html", string=" ".join(["hello dlrow" for _ in range(id)]))
 
 
 @app.route("/<string:strin>")
@@ -30,12 +30,22 @@ def printstring(strin):
 
 @app.route("/<string:string>/<int:id>")
 def repeatstring(string, id):
-    return render_template("main.html", string=" ".join([string for i in range(id)]))
+    return render_template("main.html", string=" ".join([string for _ in range(id)]))
 
 
 @app.route("/demonlist")
 def demonlist():
     return render_template("demonlist.html", params=ExeQuery("SELECT placement, name FROM demonlist ORDER BY placement ASC;"))
+
+
+@app.route("/lethal")
+def lethal():
+    return render_template("lethal.html", params=ExeQuery("SELECT name, description, danger_rating, id FROM lethal_company ORDER BY danger_rating DESC;"))
+
+
+@app.route("/lethal/<int:id>")
+def enemy(id):
+    return render_template("lethal_enemy.html", params=ExeQuery("SELECT name, description, danger_rating FROM lethal_company WHERE id = ?", (str(id)))[0])
 
 
 if __name__ == "__main__":
