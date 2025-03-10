@@ -1,0 +1,11 @@
+{% extends "layout.html" %}
+
+{% block content %}
+<h3><a href="/">Back</a></h3>
+{% for enemy in params %}
+
+<h1><a href="/enemies/{{enemy['id']}}">{{enemy['name']}}</a></h1>
+
+{% endfor %}
+
+{% endblock %}

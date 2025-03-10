@@ -1,0 +1,9 @@
+{% extends "layout.html" %}
+
+{% block content %}
+<h3><a href="/moons">Back</a></h3>
+<h1>Name: {{params['name']}}</h1>
+<h2>Danger Rating: {{params['risk_level']}}</h2>
+<h2>Price: {{params['price']}}</h2>
+
+{% endblock %}

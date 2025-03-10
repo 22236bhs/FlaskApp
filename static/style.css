@@ -1,0 +1,12 @@
+@import url('https://fonts.googleapis.com/css2?family=Handjet');
+*{
+    background-color: black;
+    color: rgb(83, 221, 58);
+    font-family: "Handjet";
+    text-decoration: none;
+    /*font-size: 50px;*/
+    font-weight: normal;
+}
+body{
+    margin-left: 40px;
+}

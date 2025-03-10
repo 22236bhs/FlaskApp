@@ -2,46 +2,74 @@ from flask import Flask, render_template
 import sqlite3
 app = Flask(__name__)
 
-DATABASE = "database.db"
+DATABASE = "lethal_database.db"
 
-def ExeQuery(query, params=()):
+def ExeQuery(*querys, params=()):
     with sqlite3.connect(DATABASE) as db:
-        return db.cursor().execute(query, params).fetchall()
+        returnlist = []
+        for query in querys:
+            returnlist.append(db.cursor().execute(query, params).fetchall())
+        if len(returnlist) == 1:
+            return returnlist[0]
+        else:
+            return returnlist       
+
 
 @app.route("/")
 def home():
-    return render_template("main.html", string="hello dlrow")
+    params = [["Moons", "moons"], ["Creatures", "enemies"]]
+    return render_template("main.html", params=params, title="Home")
 
 
-@app.route("/crazy")
-def crazy():
-    return render_template("main.html", string="this is crazy")
+@app.route("/moons")
+def moons():
+    data = ExeQuery("SELECT id, name, price FROM Moons ")
+    params = [
+        {
+            "id": data[i][0],
+            "name": data[i][1],
+            "price": data[i][2]
+        } for i in range(len(data))
+    ]
+    print(params)
+    return render_template("lethal_moons.html", params=params, title="Moons")
 
 
-@app.route("/<int:id>")
-def num(id):
-    return render_template("main.html", string=" ".join(["hello dlrow" for _ in range(id)]))
+@app.route("/moons/<int:id>")
+def moon(id):
+    data = ExeQuery('''SELECT Moons.name, Moons.price, RiskLevels.name 
+                    FROM Moons
+                    JOIN RiskLevels ON Moons.risk_level = RiskLevels.id
+                    WHERE Moons.id = ?;''', params=(id,))[0]
+    params = {
+        "name": data[0],
+        "price": data[1],
+        "risk_level": data[2]
+    }
+    return render_template("moon.html", params=params, title=params["name"])
 
 
-@app.route("/<string:strin>")
-def printstring(strin):
-    return render_template("main.html", string=strin)
+@app.route("/enemies")
+def enemies():
+    data = ExeQuery("SELECT id, name FROM Creatures")
+    params = [
+        {
+            "id": data[i][0],
+            "name": data[i][1]
+        } for i in range(len(data))
+    ]
+    return render_template("lethal_enemies.html", params=params, title="Creatures")
 
 
-@app.route("/<string:string>/<int:id>")
-def repeatstring(string, id):
-    return render_template("main.html", string=" ".join([string for _ in range(id)]))
-
-
-
-@app.route("/lethal")
-def lethal():
-    return render_template("lethal.html", params=ExeQuery("SELECT name, description, danger_rating, id FROM lethal_company ORDER BY danger_rating DESC;"))
-
-
-@app.route("/lethal/<int:id>")
+@app.route("/enemies/<int:id>")
 def enemy(id):
-    return render_template("lethal_enemy.html", params=ExeQuery("SELECT name, description, danger_rating FROM lethal_company WHERE id = ?", (str(id)))[0])
+    data = ExeQuery("SELECT name, description, danger_rating FROM Creatures WHERE id = ?", params=(id,))[0]
+    params = {
+        "name": data[0],
+        "description": data[1],
+        "danger_rating": data[2]
+    }
+    return render_template("enemy.html", params=params, title=params["name"])
 
 
 if __name__ == "__main__":

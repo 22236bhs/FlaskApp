@@ -1,0 +1,10 @@
+{% extends "layout.html" %}
+
+{% block content %}
+<h3><a href="/enemies">Back</a></h3>
+<h1>Name: {{params['name']}}</h1>
+<h2>Danger rating: {{params['danger_rating']}}</h2>
+<h2>Description:</h2>
+<p>{{params['description']}}</p>
+
+{% endblock %}
