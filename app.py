@@ -17,7 +17,7 @@ def ExeQuery(*querys, params=()):
 
 @app.route("/")
 def home():
-    params = [["Moons", "moons"], ["Creatures", "enemies"]]
+    params = [["Moons", "moons"], ["Entities", "enemies"]]
     return render_template("main.html", params=params, title="Home")
 
 
@@ -31,20 +31,21 @@ def moons():
             "price": data[i][2]
         } for i in range(len(data))
     ]
-    print(params)
     return render_template("lethal_moons.html", params=params, title="Moons")
 
 
 @app.route("/moons/<int:id>")
 def moon(id):
-    data = ExeQuery('''SELECT Moons.name, Moons.price, RiskLevels.name 
+    data = ExeQuery('''SELECT Moons.name, Moons.price, RiskLevels.name, Interiors.name
                     FROM Moons
                     JOIN RiskLevels ON Moons.risk_level = RiskLevels.id
+                    JOIN Interiors ON Interiors.id = Moons.interior
                     WHERE Moons.id = ?;''', params=(id,))[0]
     params = {
         "name": data[0],
         "price": data[1],
-        "risk_level": data[2]
+        "risk_level": data[2],
+        "interior": data[3]
     }
     return render_template("moon.html", params=params, title=params["name"])
 
@@ -58,17 +59,31 @@ def enemies():
             "name": data[i][1]
         } for i in range(len(data))
     ]
-    return render_template("lethal_enemies.html", params=params, title="Creatures")
+    return render_template("lethal_enemies.html", params=params, title="Entities")
 
 
 @app.route("/enemies/<int:id>")
 def enemy(id):
-    data = ExeQuery("SELECT name, description, danger_rating FROM Creatures WHERE id = ?", params=(id,))[0]
+    data = ExeQuery('''
+    SELECT Creatures.name, bestiary, danger, sp_hp, mp_hp, power, Moons.name, Setting.name
+    FROM Creatures 
+    JOIN Moons on Creatures.fav_moon = Moons.id
+    JOIN Setting on Creatures.setting = Setting.id
+    WHERE Creatures.id = ?''', params=(id,))[0]
     params = {
         "name": data[0],
         "description": data[1],
-        "danger_rating": data[2]
+        "danger_rating": data[2],
+        "sp_hp": data[3],
+        "mp_hp": data[4],
+        "power": data[5],
+        "fav_moon": data[6],
+        "setting": data[7]
     }
+    if params["sp_hp"] == -1:
+        params["sp_hp"] = "Invincible"
+    if params["mp_hp"] == -1:    
+        params["mp_hp"] = "Invincible"
     return render_template("enemy.html", params=params, title=params["name"])
 
 
