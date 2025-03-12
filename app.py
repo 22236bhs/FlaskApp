@@ -12,7 +12,15 @@ def ExeQuery(*querys, params=()):
         if len(returnlist) == 1:
             return returnlist[0]
         else:
-            return returnlist       
+            return returnlist   
+
+
+def UnTuple(listt):
+    print(listt)
+    for i in range(len(listt)):
+        listt[i] = listt[i][0]
+    return listt
+        
 
 
 @app.route("/")
@@ -23,7 +31,7 @@ def home():
 
 @app.route("/moons")
 def moons():
-    data = ExeQuery("SELECT id, name, price FROM Moons ")
+    data = ExeQuery("SELECT id, name, price FROM Moons;")
     params = [
         {
             "id": data[i][0],
@@ -36,17 +44,23 @@ def moons():
 
 @app.route("/moons/<int:id>")
 def moon(id):
-    data = ExeQuery('''SELECT Moons.name, Moons.price, RiskLevels.name, Interiors.name
+    data = ExeQuery(f'''SELECT Moons.name, Moons.price, RiskLevels.name, Interiors.name
                     FROM Moons
                     JOIN RiskLevels ON Moons.risk_level = RiskLevels.id
                     JOIN Interiors ON Interiors.id = Moons.interior
-                    WHERE Moons.id = ?;''', params=(id,))[0]
+                    WHERE Moons.id = {id};''', f'''SELECT name FROM Weathers WHERE id in (
+                    SELECT weather_id FROM MoonWeathers WHERE moon_id = (
+                    SELECT id FROM Moons WHERE id = {id}))''')
+    print(data)
     params = {
-        "name": data[0],
-        "price": data[1],
-        "risk_level": data[2],
-        "interior": data[3]
+        "name": data[0][0][0],
+        "price": data[0][0][1],
+        "risk_level": data[0][0][2],
+        "interior": data[0][0][3],
+        "weathers": UnTuple(data[1])
     }
+    if len(params["weathers"]) == 0:
+        params["weathers"].append("N/A")
     return render_template("moon.html", params=params, title=params["name"])
 
 

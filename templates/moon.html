@@ -6,5 +6,11 @@
 <h2>Risk Level: {{params['risk_level']}}</h2>
 <h2>Price: {{params['price']}}</h2>
 <h2>Default layout: {{params['interior']}}</h2>
+<h2>Possible weathers: </h2>
+{% for weather in params['weathers'] %}
+
+<h3>{{weather}}</h3>
+
+{% endfor %}
 
 {% endblock %}
