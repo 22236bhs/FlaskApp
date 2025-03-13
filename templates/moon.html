@@ -1,8 +1,18 @@
 {% extends "layout.html" %}
 
-{% block content %}
+{% block header %}
 <h3><a href="/moons">Back</a></h3>
-<h1>Name: {{params['name']}}</h1>
+<h1>{{params['name']}}</h1>
+{% endblock %}
+
+{% block content %}
+
+
+{% if params['secret'] %}
+
+<h1>Secret Moon</h1>
+
+{% endif %}
 <h2>Risk Level: {{params['risk_level']}}</h2>
 <h2>Price: {{params['price']}}</h2>
 <h2>Default layout: {{params['interior']}}</h2>

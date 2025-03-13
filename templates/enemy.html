@@ -1,8 +1,12 @@
 {% extends "layout.html" %}
 
-{% block content %}
+{% block header %}
 <h3><a href="/enemies">Back</a></h3>
-<h1>Name: {{params['name']}}</h1>
+<h1>{{params['name']}}</h1>
+{% endblock %}
+
+{% block content %}
+
 <h2>Danger rating: {{params['danger_rating']}}</h2>
 <h2>Health: Singleplayer = {{params['sp_hp']}}, Multiplayer = {{params['mp_hp']}}</h2>
 <h2>Power Level: {{params['power']}}</h2>

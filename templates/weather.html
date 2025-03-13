@@ -1,0 +1,23 @@
+{% extends "layout.html" %}
+
+{% block header %}
+
+<h3><a href="/weathers"></a></h3>
+<h1>{{params['name']}}</h1>
+
+{% endblock %}
+
+{% block content %}
+
+<h2>Moons that can have this weather:</h2>
+{% for moon in params['moons'] %}
+
+<h3><a href="/moons/{{moon[0]}}">{{moon[1]}}</a></h3>
+
+{% endfor %}
+
+<h2>Description:</h2>
+<p>{{params['description']}}</p>
+
+
+{% endblock %}

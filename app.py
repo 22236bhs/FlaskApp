@@ -16,7 +16,6 @@ def ExeQuery(*querys, params=()):
 
 
 def UnTuple(listt):
-    print(listt)
     for i in range(len(listt)):
         listt[i] = listt[i][0]
     return listt
@@ -25,7 +24,7 @@ def UnTuple(listt):
 
 @app.route("/")
 def home():
-    params = [["Moons", "moons"], ["Entities", "enemies"]]
+    params = [["Moons", "moons"], ["Bestiary", "enemies"], ["Weathers", "weathers"]]
     return render_template("main.html", params=params, title="Home")
 
 
@@ -44,20 +43,20 @@ def moons():
 
 @app.route("/moons/<int:id>")
 def moon(id):
-    data = ExeQuery(f'''SELECT Moons.name, Moons.price, RiskLevels.name, Interiors.name
+    data = ExeQuery(f'''SELECT Moons.name, Moons.price, RiskLevels.name, Interiors.name, Moons.secret
                     FROM Moons
                     JOIN RiskLevels ON Moons.risk_level = RiskLevels.id
                     JOIN Interiors ON Interiors.id = Moons.interior
                     WHERE Moons.id = {id};''', f'''SELECT name FROM Weathers WHERE id in (
                     SELECT weather_id FROM MoonWeathers WHERE moon_id = (
                     SELECT id FROM Moons WHERE id = {id}))''')
-    print(data)
     params = {
         "name": data[0][0][0],
         "price": data[0][0][1],
         "risk_level": data[0][0][2],
         "interior": data[0][0][3],
-        "weathers": UnTuple(data[1])
+        "weathers": UnTuple(data[1]),
+        "secret": data[0][0][4] 
     }
     if len(params["weathers"]) == 0:
         params["weathers"].append("N/A")
@@ -99,6 +98,32 @@ def enemy(id):
     if params["mp_hp"] == -1:    
         params["mp_hp"] = "Invincible"
     return render_template("enemy.html", params=params, title=params["name"])
+
+
+@app.route("/weathers")
+def weathers():
+    data = ExeQuery("SELECT id, name FROM Weathers")
+    params = [
+        {"id": data[i][0],
+         "name": data[i][1]
+        } for i in range(len(data))
+    ]
+    return render_template("lethal_weathers.html", params=params, title="Weathers")
+
+
+@app.route("/weathers/<int:id>")
+def weather(id):
+    data = ExeQuery(f'''SELECT name, description FROM Weathers
+                    WHERE id = {id}''', f'''SELECT id, name FROM Moons WHERE id IN (
+                    SELECT moon_id FROM MoonWeathers WHERE weather_id = (
+                    SELECT id FROM Weathers WHERE id = {id}))''')
+    params = {
+        "name": data[0][0][0],
+        "description": data[0][0][1],
+        "moons": data[1]
+    }
+    print(params)
+    return render_template("weather.html", params=params, title=params["name"], )
 
 
 if __name__ == "__main__":
