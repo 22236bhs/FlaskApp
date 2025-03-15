@@ -17,10 +17,14 @@
 <h2>Price: {{params['price']}}</h2>
 <h2>Default layout: {{params['interior']}}</h2>
 <h2>Possible weathers: </h2>
+{% if params['weathers']|length > 0 %}
 {% for weather in params['weathers'] %}
 
-<h3>{{weather}}</h3>
+<h3><a href="/weathers/{{weather[0]}}">* {{weather[1]}}</a></h3>
 
 {% endfor %}
+{% else %}
+<h3>N/A</h3>
+{% endif %}
 
 {% endblock %}

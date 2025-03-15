@@ -47,7 +47,7 @@ def moon(id):
                     FROM Moons
                     JOIN RiskLevels ON Moons.risk_level = RiskLevels.id
                     JOIN Interiors ON Interiors.id = Moons.interior
-                    WHERE Moons.id = {id};''', f'''SELECT name FROM Weathers WHERE id in (
+                    WHERE Moons.id = {id};''', f'''SELECT id, name FROM Weathers WHERE id in (
                     SELECT weather_id FROM MoonWeathers WHERE moon_id = (
                     SELECT id FROM Moons WHERE id = {id}))''')
     params = {
@@ -55,11 +55,12 @@ def moon(id):
         "price": data[0][0][1],
         "risk_level": data[0][0][2],
         "interior": data[0][0][3],
-        "weathers": UnTuple(data[1]),
+        "weathers": data[1],
         "secret": data[0][0][4] 
     }
-    if len(params["weathers"]) == 0:
-        params["weathers"].append("N/A")
+    #if len(params["weathers"]) == 0:
+    #    params["weathers"].append("N/A")
+    #print(params)
     return render_template("moon.html", params=params, title=params["name"])
 
 

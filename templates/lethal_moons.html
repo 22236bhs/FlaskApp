@@ -2,12 +2,13 @@
 
 {% block header %}
 <h3><a href="/">Back</a></h3>
+<h1>Moons</h1>
 {% endblock %}
 {% block content %}
 
 {% for moon in params %}
 
-<a href="/moons/{{moon['id']}}"><h1>* {{moon['name']}}</h1></a>
+<h1><a href="/moons/{{moon['id']}}">* {{moon['name']}}</a></h1>
 <h2>Price: {{moon['price']}}<br><br></h2>
 {% endfor %}
 
