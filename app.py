@@ -15,10 +15,10 @@ def ExeQuery(*querys, params=()):
             return returnlist   
 
 
-def UnTuple(listt):
-    for i in range(len(listt)):
-        listt[i] = listt[i][0]
-    return listt
+#def UnTuple(listt):
+#   for i in range(len(listt)):
+#        listt[i] = listt[i][0]
+#   return listt
         
 
 
@@ -43,7 +43,7 @@ def moons():
 
 @app.route("/moons/<int:id>")
 def moon(id):
-    data = ExeQuery(f'''SELECT Moons.name, Moons.price, RiskLevels.name, Interiors.name, Moons.secret
+    data = ExeQuery(f'''SELECT Moons.name, Moons.price, RiskLevels.name, Interiors.name, Moons.secret, Moons.max_indoor_power, Moons.max_outdoor_power
                     FROM Moons
                     JOIN RiskLevels ON Moons.risk_level = RiskLevels.id
                     JOIN Interiors ON Interiors.id = Moons.interior
@@ -56,11 +56,10 @@ def moon(id):
         "risk_level": data[0][0][2],
         "interior": data[0][0][3],
         "weathers": data[1],
-        "secret": data[0][0][4] 
+        "secret": data[0][0][4],
+        "indoor_power": data[0][0][5],
+        "outdoor_power": data[0][0][6] 
     }
-    #if len(params["weathers"]) == 0:
-    #    params["weathers"].append("N/A")
-    #print(params)
     return render_template("moon.html", params=params, title=params["name"])
 
 

@@ -13,9 +13,11 @@
 <h1>Secret Moon</h1>
 
 {% endif %}
+<h1 class="inline">Price: <h2 class="inline">{{params['price']}} credits<h2></h1>
 <h2>Risk Level: {{params['risk_level']}}</h2>
-<h2>Price: {{params['price']}}</h2>
 <h2>Default layout: {{params['interior']}}</h2>
+<h2>Maximum indoor power: {{params['indoor power']}}</h2>
+<h2>Maximum outdoor power: {{params['outdoor power']}}</h2>
 <h2>Possible weathers: </h2>
 {% if params['weathers']|length > 0 %}
 {% for weather in params['weathers'] %}
