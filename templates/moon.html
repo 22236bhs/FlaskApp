@@ -1,7 +1,7 @@
 {% extends "layout.html" %}
 
 {% block header %}
-<h3><a href="/moons">Back</a></h3>
+<h3><a href="/moons">* Back</a></h3>
 <h1>{{params['name']}}</h1>
 {% endblock %}
 
@@ -15,6 +15,9 @@
 {% endif %}
 <h1 class="inline">Price: <h2 class="inline">{{params['price']}} credits<h2></h1>
 <h2>Risk Level: {{params['risk_level']}}</h2>
+<h2>CONDITIONS: {{params['conditions']}}</h2>
+<h2>HISTORY: {{params['history']}}</h2>
+<h2>FAUNA: {{params['fauna']}}</h2>
 <h2>Default layout: {{params['interior']}}</h2>
 <h2>Maximum indoor power: {{params['indoor power']}}</h2>
 <h2>Maximum outdoor power: {{params['outdoor power']}}</h2>

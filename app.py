@@ -43,7 +43,7 @@ def moons():
 
 @app.route("/moons/<int:id>")
 def moon(id):
-    data = ExeQuery(f'''SELECT Moons.name, Moons.price, RiskLevels.name, Interiors.name, Moons.secret, Moons.max_indoor_power, Moons.max_outdoor_power
+    data = ExeQuery(f'''SELECT Moons.name, Moons.price, RiskLevels.name, Interiors.name, Moons.secret, Moons.max_indoor_power, Moons.max_outdoor_power, Moons.conditions, Moons.history, Moons.fauna
                     FROM Moons
                     JOIN RiskLevels ON Moons.risk_level = RiskLevels.id
                     JOIN Interiors ON Interiors.id = Moons.interior
@@ -58,7 +58,10 @@ def moon(id):
         "weathers": data[1],
         "secret": data[0][0][4],
         "indoor_power": data[0][0][5],
-        "outdoor_power": data[0][0][6] 
+        "outdoor_power": data[0][0][6] ,
+        "conditions": data[0][0][7],
+        "history": data[0][0][8],
+        "fauna": data[0][0][9]
     }
     return render_template("moon.html", params=params, title=params["name"])
 
