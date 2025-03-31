@@ -68,7 +68,7 @@ def moon(id):
 
 @app.route("/enemies")
 def enemies():
-    data = ExeQuery("SELECT id, name FROM Creatures")
+    data = ExeQuery("SELECT id, name FROM Entities")
     params = [
         {
             "id": data[i][0],
@@ -81,11 +81,11 @@ def enemies():
 @app.route("/enemies/<int:id>")
 def enemy(id):
     data = ExeQuery('''
-    SELECT Creatures.name, bestiary, danger, sp_hp, mp_hp, power, Moons.name, Setting.name
-    FROM Creatures 
-    JOIN Moons on Creatures.fav_moon = Moons.id
-    JOIN Setting on Creatures.setting = Setting.id
-    WHERE Creatures.id = ?''', params=(id,))[0]
+    SELECT Entities.name, bestiary, danger, sp_hp, mp_hp, power, Moons.name, Setting.name
+    FROM Entities 
+    JOIN Moons on Entities.fav_moon = Moons.id
+    JOIN Setting on Entities.setting = Setting.id
+    WHERE Entities.id = ?''', params=(id,))[0]
     params = {
         "name": data[0],
         "description": data[1],
