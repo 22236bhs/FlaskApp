@@ -125,7 +125,6 @@ def weather(id):
         "description": data[0][0][1],
         "moons": data[1]
     }
-    print(params)
     return render_template("weather.html", params=params, title=params["name"], )
 
 
