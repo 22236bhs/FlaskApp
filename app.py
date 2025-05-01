@@ -6,57 +6,57 @@ DATABASE = "LCdb.db"
 
 @app.route("/") #Home page for selection
 def home():
-    return render_template("test.html", page="home")
+    return render_template("main.html")
 
 
-@app.route("/entity")
+@app.route("/entity") #Entity list
 def entities():
-    return render_template("test.html", page="entities")
+    return render_template("entitylist.html")
 
 
-@app.route("/entity/<int:id>")
+@app.route("/entity/<int:id>") #Entity data page
 def entity(id):
-    return render_template("test.html", page="entity")
+    return render_template("entity.html")
 
 
-@app.route("/moons")
+@app.route("/moons") #Moon list
 def moons():
-    return render_template("test.html", page="moons")
+    return render_template("moonlist.html")
 
 
-@app.route("/moons/<int:id>")
+@app.route("/moons/<int:id>") #Moon data page
 def moon(id):
-    return render_template("test.html", page="moon")
+    return render_template("moon.html")
 
 
-@app.route("/tools")
+@app.route("/tools") #Tool list
 def tools():
-    return render_template("test.html", page="tools")
+    return render_template("toollist.html")
 
 
-@app.route("/tools/<int:id>")
+@app.route("/tools/<int:id>") #Tool data page
 def tool(id):
-    return render_template("test.html", page="tool")
+    return render_template("tool.html")
 
 
-@app.route("/weathers")
+@app.route("/weathers") #Weather list
 def weathers():
-    return render_template("test.html", page="weathers")
+    return render_template("weatherlist.html")
 
 
-@app.route("/weathers/<int:id>")
+@app.route("/weathers/<int:id>") #Weather data page
 def weather(id):
-    return render_template("test.html", page="weather")
+    return render_template("weather.html")
 
 
-@app.route("/interiors")
+@app.route("/interiors") #Interior list
 def interiors():
-    return render_template("test.html", page="interiors")
+    return render_template("interiorlist.html")
 
 
-@app.route("/interiors/<int:id>")
+@app.route("/interiors/<int:id>") #Interior data page
 def interior(id):
-    return render_template("test.html", page="interior")
+    return render_template("interior.html")
 
 
 if __name__ == "__main__":
