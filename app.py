@@ -6,57 +6,57 @@ DATABASE = "LCdb.db"
 
 @app.route("/") #Home page for selection
 def home():
-    return render_template("main.html")
+    return render_template("main.html", title="Home")
 
 
 @app.route("/entity") #Entity list
 def entities():
-    return render_template("entitylist.html")
+    return render_template("entitylist.html", title="Entity List")
 
 
 @app.route("/entity/<int:id>") #Entity data page
 def entity(id):
-    return render_template("entity.html")
+    return render_template("entity.html", title="")
 
 
 @app.route("/moons") #Moon list
 def moons():
-    return render_template("moonlist.html")
+    return render_template("moonlist.html", title="Moon List")
 
 
 @app.route("/moons/<int:id>") #Moon data page
 def moon(id):
-    return render_template("moon.html")
+    return render_template("moon.html", title="")
 
 
 @app.route("/tools") #Tool list
 def tools():
-    return render_template("toollist.html")
+    return render_template("toollist.html", title="Tool List")
 
 
 @app.route("/tools/<int:id>") #Tool data page
 def tool(id):
-    return render_template("tool.html")
+    return render_template("tool.html", title="")
 
 
 @app.route("/weathers") #Weather list
 def weathers():
-    return render_template("weatherlist.html")
+    return render_template("weatherlist.html", title="Weather List")
 
 
 @app.route("/weathers/<int:id>") #Weather data page
 def weather(id):
-    return render_template("weather.html")
+    return render_template("weather.html", title="")
 
 
 @app.route("/interiors") #Interior list
 def interiors():
-    return render_template("interiorlist.html")
+    return render_template("interiorlist.html", title="Interior List")
 
 
 @app.route("/interiors/<int:id>") #Interior data page
 def interior(id):
-    return render_template("interior.html")
+    return render_template("interior.html", title="")
 
 
 if __name__ == "__main__":
