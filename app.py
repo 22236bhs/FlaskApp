@@ -6,7 +6,12 @@ DATABASE = "LCdb.db"
 
 @app.route("/") #Home page for selection
 def home():
-    return render_template("main.html", title="Home")
+    params = [("Moons", "The moons the autopilot can route to.", "moons"),
+              ("Tools", "The items and upgrades you can buy or find.", "tools"),
+              ("Entites", "The entities you may encounter.", "entity"),
+              ("Weathers", "The weathers a moon can have.", "weathers"),
+              ("Interiors", "The interiors a moon's facility may have.", "interiors")]
+    return render_template("main.html", params=params, title="Home")
 
 
 @app.route("/entity") #Entity list

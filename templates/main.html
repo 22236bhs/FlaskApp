@@ -1,6 +1,17 @@
 {% extends "layout.html" %}
+
+{% block header %}
+
+<h1>Lethal Company Guide</h1>
+
+{% endblock %}
 {% block content %}
 
+{% for param in params %}
 
+<a href="{{param[2]}}"><h2>{{param[0]}}</h2></a>
+<h3>{{param[1]}}</h3>
+
+{% endfor %}
 
 {% endblock %}
