@@ -41,7 +41,27 @@ def entities():
 
 @app.route("/entity/<int:id>") #Entity data page
 def entity(id):
-    return render_template("entity.html", title="")
+    with sqlite3.connect(DATABASE) as db:
+        data = db.cursor().execute('''
+                                   SELECT Entities.name, danger, bestiary, Setting.name, Moons.name, sp_hp, mp_hp, power, max_spawned, Entities.description, Entities.pictures
+                                   FROM Entities
+                                   JOIN Moons ON Entities.fav_moon = Moons.id
+                                   JOIN Setting ON Entities.setting = Setting.id
+                                   WHERE Entities.id = ?''', (id,)).fetchall()[0]
+    params = {
+        "name": data[0],
+        "danger": data[1],
+        "bestiary": data[2],
+        "setting": data[3],
+        "fav_moon": data[4],
+        "sp_hp": data[5],
+        "mp_hp": data[6],
+        "power": data[7],
+        "max_spawned": data[8],
+        "descriptions": data[9],
+        "pictures": data[10]
+    }
+    return render_template("entity.html", params=params, title=params["name"])
 
 
 @app.route("/moons") #Moon list

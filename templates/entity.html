@@ -1,6 +1,24 @@
 {% extends "layout.html" %}
-{% block content %}
 
+{% block header %}
 
+<h3><a href="/entity">* BACK</a></h3>
+<h1>{{params["name"]}}</h1>
 
 {% endblock %}
+
+{% block content %}
+
+<h2>Danger Rating: {{params["danger"]}}</h2>
+{% if params["sp_hp"] == params["mp_hp"] %}
+<h2>Health: {{params["sp_hp"]}}</h2>
+{% else %}
+<h2>Single Player Health: {{params["sp_hp"]}}</h2>
+<h2>Multiplayer Health: {{params["mp_hp"]}}</h2>
+{% endif %}
+<h2>Power Level: {{params["power"]}}</h2>
+<h2>Max Spawn Count: {{params["max_spawned"]}}</h2>
+<h2>Favourite Moon: {{params["fav_moon"]}}</h2>
+<h2>Spawns {{params["setting"]}}</h2>
+{% endblock %}
+
