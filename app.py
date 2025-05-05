@@ -16,7 +16,27 @@ def home():
 
 @app.route("/entity") #Entity list
 def entities():
-    return render_template("entitylist.html", title="Entity List")
+    with sqlite3.connect(DATABASE) as db:
+        data = db.cursor().execute("SELECT id, name, setting FROM Entities").fetchall()
+    
+    params = [[{
+        "id": data[i][0],
+        "name": data[i][1],
+        "setting": data[i][2]
+    } for i in range(len(data)) if data[i][2] == 1]]
+
+    params.append([{
+        "id": data[i][0],
+        "name": data[i][1],
+        "setting": data[i][2]
+    } for i in range(len(data)) if data[i][2] == 2])
+
+    params.append([{
+        "id": data[i][0],
+        "name": data[i][1],
+        "setting": data[i][2]
+    } for i in range(len(data)) if data[i][2] == 3])
+    return render_template("entitylist.html", params=params, title="Entity List")
 
 
 @app.route("/entity/<int:id>") #Entity data page

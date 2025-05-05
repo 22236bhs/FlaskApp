@@ -1,6 +1,34 @@
 {% extends "layout.html" %}
+
+{% block header %}
+
+<h3><a href="/">* Back</a></h3>
+<h1>Welcome to the Entity List</h1>
+
+{% endblock %}
+
 {% block content %}
 
+<h1>Indoor Entities:</h1>
+{% for entity in params[0] %}
+
+<h2><a href="/entity/{{entity['id']}}">* {{entity["name"]}}</a></h2>
+
+{% endfor %}
+
+<h1>Outdoor Entities at Nighttime</h1>
+{% for entity in params[1] %}
+
+<h2><a href="/entity/{{entity['id']}}">* {{entity["name"]}}</a></h2>
+
+{% endfor %}
+
+<h1>Outdoor Entities at Daytime</h1>
+{% for entity in params[2] %}
+
+<h2><a href="/entity/{{entity['id']}}">* {{entity["name"]}}</a></h2>
+
+{% endfor %}
 
 
 {% endblock %}
