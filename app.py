@@ -17,7 +17,7 @@ def home():
 @app.route("/entity") #Entity list
 def entities():
     with sqlite3.connect(DATABASE) as db:
-        data = db.cursor().execute("SELECT id, name, setting FROM Entities").fetchall()
+        data = db.cursor().execute("SELECT id, name, setting FROM Entities;").fetchall()
     
     params = [[{
         "id": data[i][0],
@@ -47,7 +47,7 @@ def entity(id):
                                    FROM Entities
                                    JOIN Moons ON Entities.fav_moon = Moons.id
                                    JOIN Setting ON Entities.setting = Setting.id
-                                   WHERE Entities.id = ?''', (id,)).fetchall()[0]
+                                   WHERE Entities.id = ?;''', (id,)).fetchall()[0]
     params = {
         "name": data[0],
         "danger": data[1],
@@ -58,7 +58,7 @@ def entity(id):
         "mp_hp": data[6],
         "power": data[7],
         "max_spawned": data[8],
-        "descriptions": data[9],
+        "description": data[9],
         "pictures": data[10]
     }
     return render_template("entity.html", params=params, title=params["name"])
@@ -66,6 +66,16 @@ def entity(id):
 
 @app.route("/moons") #Moon list
 def moons():
+    with sqlite3.connect(DATABASE) as db:
+        data = db.cursor().execute('''
+                                   SELECT id, name, price, tier
+                                   FROM Moons;''').fetchall()
+    params = [[{
+        "id": data[i][0],
+        "name": data[i][1],
+        "price": data[i][2],
+        "tier": data[i][3]
+    } for i in range(len(data)) if data[i][3] == 1]]
     return render_template("moonlist.html", title="Moon List")
 
 

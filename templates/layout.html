@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
     <meta charset="UTF-8">
@@ -7,15 +8,17 @@
     <title>Lethal Company - {{title}}</title>
     <link rel="icon" href="/static/images/lethal_icon.png">
 </head>
-<body> 
+
+<body>
     {% block header %}
     {% endblock %}
     <h1>
-    {% for i in range(33) %}
-    - 
-    {% endfor %} 
-    </h1>                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    
+        {% for i in range(33) %}
+        -
+        {% endfor %}
+    </h1>
     {% block content %}
     {% endblock %}
 </body>
+
 </html>

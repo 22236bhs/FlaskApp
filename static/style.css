@@ -1,5 +1,6 @@
 @import url('https://fonts.googleapis.com/css2?family=Handjet');
-*{
+
+* {
     background-color: rgb(32, 31, 31);
     color: rgb(83, 221, 58);
     font-family: "Handjet";
@@ -8,14 +9,14 @@
     font-weight: normal;
 }
 
-body{
+body {
     margin-left: 10%;
 }
 
-.extra-spacing{
+.extra-spacing {
     white-space: pre-wrap;
 }
 
-.inline{
+.inline {
     display: inline;
 }
