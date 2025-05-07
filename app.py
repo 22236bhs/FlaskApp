@@ -19,23 +19,14 @@ def entities():
     with sqlite3.connect(DATABASE) as db:
         data = db.cursor().execute("SELECT id, name, setting FROM Entities;").fetchall()
     
-    params = [[{
-        "id": data[i][0],
-        "name": data[i][1],
-        "setting": data[i][2]
-    } for i in range(len(data)) if data[i][2] == 1]]
+    params = []
+    for a in range(3):
+        params.append([{
+            "id": data[i][0],
+            "name": data[i][1],
+            "setting": data[i][2]
+        } for i in range(len(data)) if data[i][2] == a + 1])
 
-    params.append([{
-        "id": data[i][0],
-        "name": data[i][1],
-        "setting": data[i][2]
-    } for i in range(len(data)) if data[i][2] == 2])
-
-    params.append([{
-        "id": data[i][0],
-        "name": data[i][1],
-        "setting": data[i][2]
-    } for i in range(len(data)) if data[i][2] == 3])
     return render_template("entitylist.html", params=params, title="Entity List")
 
 
@@ -70,13 +61,16 @@ def moons():
         data = db.cursor().execute('''
                                    SELECT id, name, price, tier
                                    FROM Moons;''').fetchall()
-    params = [[{
-        "id": data[i][0],
-        "name": data[i][1],
-        "price": data[i][2],
-        "tier": data[i][3]
-    } for i in range(len(data)) if data[i][3] == 1]]
-    return render_template("moonlist.html", title="Moon List")
+    params = []
+    for a in range(3):
+        params.append([{
+            "id": data[i][0],
+            "name": data[i][1],
+            "price": data[i][2],
+            "tier": data[i][3]
+        } for i in range(len(data)) if data[i][3] == a + 1])
+    
+    return render_template("moonlist.html", params=params, title="Moon List")
 
 
 @app.route("/moons/<int:id>") #Moon data page
