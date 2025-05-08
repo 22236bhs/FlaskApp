@@ -106,11 +106,25 @@ def moon(id):
 
 @app.route("/tools") #Tool list
 def tools():
-    return render_template("toollist.html", title="Tool List")
+    with sqlite3.connect(DATABASE) as db:
+        data = db.cursor().execute('''
+                                   SELECT id, name, upgrade
+                                   FROM Tools''').fetchall()
+    params = []
+    for a in range(2):
+        params.append([{
+            "id": data[i][0],
+            "name": data[i][1]
+        } for i in range(len(data)) if data[i][2] == a])
+
+    return render_template("toollist.html", params=params, title="Tool List")
 
 
 @app.route("/tools/<int:id>") #Tool data page
 def tool(id):
+    with sqlite3.connect(DATABASE) as db:
+        data = db.cursor().execute('''
+                                   SELECT name, price, descriptions, upgrade, weight, pictures''').fetchall()[0]
     return render_template("tool.html", title="")
 
 
