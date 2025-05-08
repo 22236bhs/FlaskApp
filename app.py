@@ -62,12 +62,11 @@ def moons():
                                    SELECT id, name, price, tier
                                    FROM Moons;''').fetchall()
     params = []
-    for a in range(3):
+    for a in range(4):
         params.append([{
             "id": data[i][0],
             "name": data[i][1],
-            "price": data[i][2],
-            "tier": data[i][3]
+            "price": data[i][2]
         } for i in range(len(data)) if data[i][3] == a + 1])
     
     return render_template("moonlist.html", params=params, title="Moon List")
@@ -75,7 +74,34 @@ def moons():
 
 @app.route("/moons/<int:id>") #Moon data page
 def moon(id):
-    return render_template("moon.html", title="")
+    with sqlite3.connect(DATABASE) as db:
+        cur = db.cursor()
+        data = cur.execute('''
+                                   SELECT Moons.name, RiskLevels.name, price, Interiors.id, Interiors.name, max_indoor_power, max_outdoor_power, conditions, history, fauna, Moons.description, tier, Moons.pictures
+                                   FROM Moons
+                                   JOIN RiskLevels ON Moons.risk_level = RiskLevels.id
+                                   JOIN Interiors ON Moons.interior = Interiors.id
+                                   WHERE Moons.id = ?;''', (id,)).fetchall()[0]
+        weatherdata = cur.execute('''
+                                  SELECT id, name FROM Weathers WHERE id IN (
+                                  SELECT weather_id FROM MoonWeathers WHERE moon_id = ?)''', (id,)).fetchall()
+    
+    params = {
+        "name": data[0],
+        "risk_level": data[1],
+        "price": data[2],
+        "interior": {"id": data[3], "name": data[4]},
+        "max_indoor_power": data[5],
+        "max_outdoor_power": data[6],
+        "conditions": data[7],
+        "history": data[8],
+        "fauna": data[9],
+        "description": data[10],
+        "tier": data[11],
+        "pictures": data[12],
+        "weathers": weatherdata
+    }
+    return render_template("moon.html", params=params, title=params["name"])
 
 
 @app.route("/tools") #Tool list

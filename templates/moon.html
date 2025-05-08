@@ -2,12 +2,37 @@
 
 {% block header %}
 
-
+<h3><a href="/moons">* BACK</a></h3>
+<h1>{{params["name"]}}</h1>
 
 {% endblock %}
 
 {% block content %}
+{% if params["tier"] == 4 %}
 
+<h1>Secret Moon</h1>
 
+{% endif %}
+
+<h2>Price: {{params["price"]}}</h2>
+<h2>Risk Level: {{params["risk_level"]}}</h2>
+<h2>Most Common Interior: <a href="/interiors/{{params['interior']['id']}}">{{params["interior"]["name"]}}</a></h2>
+<h2>Maximum Indoor Power: {{params["max_indoor_power"]}}</h2>
+<h2>Maximum Outdoor Power: {{params["max_outdoor_power"]}}</h2>
+<h2>Conditions:</h2>
+<p>{{params["conditions"]}}</p>
+<h2>History:</h2>
+<p>{{params["history"]}}</p>
+<h2>Fauna:</h2>
+<p>{{params["fauna"]}}</p>
+<h2>Description:</h2>
+<p>{{params["description"]}}</p>
+<h2>Possible Weathers</h2>
+
+{% for weather in params["weathers"] %}
+
+<h3><a href="/weathers/{{weather[0]}}">{{weather[1]}}</a></h3>
+
+{% endfor %}
 
 {% endblock %}
