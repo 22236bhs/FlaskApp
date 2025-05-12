@@ -2,12 +2,23 @@
 
 {% block header %}
 
-
+<h3><a href="/tools">* BACK</a></h3>
+<h1>{{params["name"]}}</h1>
 
 {% endblock %}
 
 {% block content %}
 
+<h2>Price: <cred>▮</cred>{{params["price"]}}</h2>
 
+{% if params['upgrade'] == 1 %}
+<h2>Type: Ship Upgrade</h2>
+{% else %}
+<h2>Type: Item</h2>
+<h2>Weight: {{params["weight"]}} lbs</h2>
+{% endif %}
+
+<h2>Description:</h2>
+<p>{{params["description"]}}</p>
 
 {% endblock %}

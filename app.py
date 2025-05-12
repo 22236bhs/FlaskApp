@@ -124,8 +124,20 @@ def tools():
 def tool(id):
     with sqlite3.connect(DATABASE) as db:
         data = db.cursor().execute('''
-                                   SELECT name, price, descriptions, upgrade, weight, pictures''').fetchall()[0]
-    return render_template("tool.html", title="")
+                                   SELECT name, price, description, upgrade, weight, pictures
+                                   FROM Tools
+                                   WHERE id = ?;
+                                   ''', (id,)).fetchall()[0]
+    params = {
+        "name": data[0],
+        "price": data[1],
+        "description": data[2],
+        "upgrade": data[3],
+        "weight": data[4],
+        "pictures": data[5]
+    }
+        
+    return render_template("tool.html", params=params, title=params["name"])
 
 
 @app.route("/weathers") #Weather list
