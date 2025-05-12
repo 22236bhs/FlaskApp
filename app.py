@@ -84,7 +84,7 @@ def moon(id):
                                    WHERE Moons.id = ?;''', (id,)).fetchall()[0]
         weatherdata = cur.execute('''
                                   SELECT id, name FROM Weathers WHERE id IN (
-                                  SELECT weather_id FROM MoonWeathers WHERE moon_id = ?)''', (id,)).fetchall()
+                                  SELECT weather_id FROM MoonWeathers WHERE moon_id = ?);''', (id,)).fetchall()
     
     params = {
         "name": data[0],
@@ -109,7 +109,7 @@ def tools():
     with sqlite3.connect(DATABASE) as db:
         data = db.cursor().execute('''
                                    SELECT id, name, upgrade
-                                   FROM Tools''').fetchall()
+                                   FROM Tools;''').fetchall()
     params = []
     for a in range(2):
         params.append([{
@@ -142,17 +142,50 @@ def tool(id):
 
 @app.route("/weathers") #Weather list
 def weathers():
-    return render_template("weatherlist.html", title="Weather List")
+    with sqlite3.connect(DATABASE) as db:
+        data = db.cursor().execute('''
+                                   SELECT id, name
+                                   FROM Weathers;''').fetchall()
+    params = [{
+        "id": data[i][0],
+        "name": data[i][1]
+    } for i in range(len(data))]
+
+    return render_template("weatherlist.html", params=params, title="Weather List")
 
 
 @app.route("/weathers/<int:id>") #Weather data page
 def weather(id):
-    return render_template("weather.html", title="")
+    with sqlite3.connect(DATABASE) as db:
+        cur = db.cursor()
+        data = cur.execute('''
+                           SELECT name, description, pictures
+                           FROM Weathers
+                           WHERE id = ?;''', (id,)).fetchall()[0]
+        moondata = cur.execute('''
+                               SELECT id, name FROM Moons WHERE id IN (
+                               SELECT moon_id FROM MoonWeathers WHERE weather_id = ?);''', (id,)).fetchall()
+    print(data)
+    params = {
+        "name": data[0],
+        "moons": moondata,
+        "description": data[1],
+        "pictures": data[2]
+    }
+    return render_template("weather.html", params=params, title=params["name"])
 
 
 @app.route("/interiors") #Interior list
 def interiors():
-    return render_template("interiorlist.html", title="Interior List")
+    with sqlite3.connect(DATABASE) as db:
+        data = db.cursor().execute('''
+                                   SELECT id, name
+                                   FROM Interiors;''').fetchall()
+    params = [{
+        "id": data[i][0],
+        "name": data[i][1]
+    } for i in range(len(data))]
+    return render_template("interiorlist.html", params=params, title="Interior List")
 
 
 @app.route("/interiors/<int:id>") #Interior data page

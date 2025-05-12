@@ -2,12 +2,17 @@
 
 {% block header %}
 
-
+<h3><a href="/">* BACK</a></h3>
+<h1>Welcome to the Weather List</h1>
 
 {% endblock %}
 
 {% block content %}
 
+{% for weather in params %}
 
+<h2><a href="/weathers/{{weather['id']}}">* {{weather["name"]}}</a></h2>
+
+{% endfor %}
 
 {% endblock %}
