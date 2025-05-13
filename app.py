@@ -17,7 +17,9 @@ def home():
 @app.route("/entity") #Entity list
 def entities():
     with sqlite3.connect(DATABASE) as db:
-        data = db.cursor().execute("SELECT id, name, setting FROM Entities;").fetchall()
+        data = db.cursor().execute('''
+                                   SELECT id, name, setting 
+                                   FROM Entities;''').fetchall()
     
     params = []
     for a in range(3):
@@ -184,13 +186,24 @@ def interiors():
     params = [{
         "id": data[i][0],
         "name": data[i][1]
-    } for i in range(len(data))]
+    } for i in range(len(data)) if data[i][1] != "N/A"]
     return render_template("interiorlist.html", params=params, title="Interior List")
 
 
 @app.route("/interiors/<int:id>") #Interior data page
 def interior(id):
-    return render_template("interior.html", title="")
+    with sqlite3.connect(DATABASE) as db:
+        data = db.cursor().execute('''
+                                   SELECT name, description, pictures
+                                   FROM Interiors
+                                   WHERE id = ?;''', (id,)).fetchall()[0]
+    params = {
+        "name": data[0],
+        "description": data[1],
+        "pictures": data[2]
+    }
+
+    return render_template("interior.html", params=params, title=params['name'])
 
 
 if __name__ == "__main__":
