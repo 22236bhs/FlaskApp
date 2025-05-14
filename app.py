@@ -4,6 +4,8 @@ import sqlite3
 app = Flask(__name__)
 DATABASE = "LCdb.db"
 
+#▮
+
 @app.route("/") #Home page for selection
 def home():
     params = [("Moons", "The moons the autopilot can route to.", "moons"),
@@ -87,7 +89,7 @@ def moon(id):
         weatherdata = cur.execute('''
                                   SELECT id, name FROM Weathers WHERE id IN (
                                   SELECT weather_id FROM MoonWeathers WHERE moon_id = ?);''', (id,)).fetchall()
-    
+        
     params = {
         "name": data[0],
         "risk_level": data[1],
@@ -167,7 +169,7 @@ def weather(id):
         moondata = cur.execute('''
                                SELECT id, name FROM Moons WHERE id IN (
                                SELECT moon_id FROM MoonWeathers WHERE weather_id = ?);''', (id,)).fetchall()
-    print(data)
+    
     params = {
         "name": data[0],
         "moons": moondata,

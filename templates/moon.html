@@ -14,9 +14,14 @@
 
 {% endif %}
 
-<h2>Price: <cred>▮</cred>{{params["price"]}}</h2>
+<h2>Price: {{params["price"]}} credits</h2>
 <h2>Risk Level: {{params["risk_level"]}}</h2>
+{% if params["interior"]["name"] != "N/A" %}
 <h2>Most Common Interior: <a href="/interiors/{{params['interior']['id']}}">{{params["interior"]["name"]}}</a></h2>
+{% else %}
+<h2>Most Common Interior: {{params["interior"]["name"]}}</h2>
+{% endif %}
+
 <h2>Maximum Indoor Power: {{params["max_indoor_power"]}}</h2>
 <h2>Maximum Outdoor Power: {{params["max_outdoor_power"]}}</h2>
 <h2>Conditions:</h2>
@@ -27,7 +32,7 @@
 <p>{{params["fauna"]}}</p>
 <h2>Description:</h2>
 <p>{{params["description"]}}</p>
-<h2>Possible Weathers</h2>
+<h2>Possible Weathers: </h2>
 
 {% for weather in params["weathers"] %}
 
