@@ -66,7 +66,7 @@ def moons():
                                    SELECT id, name, price, tier
                                    FROM Moons;''').fetchall()
     params = []
-    for a in range(4):
+    for a in range(5):
         params.append([{
             "id": data[i][0],
             "name": data[i][1],

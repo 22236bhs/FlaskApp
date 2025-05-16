@@ -43,4 +43,13 @@
 
 {% endfor %}
 
+<br>
+
+{% for moon in params[4] %}
+
+<h1><a href="/moons/{{moon['id']}}">{{moon['name']}}</a></h1>
+<h2>Price: {{moon['price']}}</h2>
+
+{% endfor %}
+
 {% endblock %}
