@@ -56,6 +56,7 @@ def entity(id):
         "description": data[9],
         "pictures": data[10]
     }
+    params["bestiary"] = params["bestiary"].replace("\\n", "\n")
     return render_template("entity.html", params=params, title=params["name"])
 
 
@@ -209,4 +210,4 @@ def interior(id):
 
 
 if __name__ == "__main__":
-    app.run(debug=True)
+    app.run(debug=True, host="127.0.0.2")

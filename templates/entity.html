@@ -21,7 +21,7 @@
 <h2>Favourite Moon: {{params["fav_moon"]}}</h2>
 <h2>Spawns {{params["setting"]}}</h2>
 <h2>Bestiary: </h2>
-<p>{{params['bestiary']}}</p>
+<p class="descriptions">{{ params['bestiary'] | replace('\n', '<br>' | safe)}}</p>
 <h2>My Description: </h2>
 <p>{{params['description']}}</p>
 {% endblock %}

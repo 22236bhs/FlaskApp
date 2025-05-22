@@ -24,3 +24,8 @@ body {
 cred{
     font-size: 20px
 }
+
+.descriptions{
+    border: 1px solid rgb(83, 221, 58);;
+    padding: 10px
+}

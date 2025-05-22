@@ -9,10 +9,11 @@
 
 {% block content %}
 
+
 {% for moon in params[0] %}
 
-<h1><a href="/moons/{{moon['id']}}">{{moon['name']}}</a></h1>
-<h2>Price: {{moon['price']}} credits</h2>
+<h2><a href="/moons/{{moon['id']}}">{{moon['name']}}</a></h2>
+<h3>Price: {{moon['price']}} credits</h3>
 
 {% endfor %}
 
@@ -20,8 +21,8 @@
 
 {% for moon in params[1] %}
 
-<h1><a href="/moons/{{moon['id']}}">{{moon['name']}}</a></h1>
-<h2>Price: {{moon['price']}}</h2>
+<h2><a href="/moons/{{moon['id']}}">{{moon['name']}}</a></h2>
+<h3>Price: {{moon['price']}}</h3>
 
 {% endfor %}
 
@@ -29,8 +30,8 @@
 
 {% for moon in params[2] %}
 
-<h1><a href="/moons/{{moon['id']}}">{{moon['name']}}</a></h1>
-<h2>Price: {{moon['price']}}</h2>
+<h2><a href="/moons/{{moon['id']}}">{{moon['name']}}</a></h2>
+<h3>Price: {{moon['price']}}</h3>
 
 {% endfor %}
 
@@ -38,17 +39,19 @@
 
 {% for moon in params[3] %}
 
-<h1><a href="/moons/{{moon['id']}}">{{moon['name']}}</a></h1>
-<h2>Price: {{moon['price']}}</h2>
+<h2><a href="/moons/{{moon['id']}}">{{moon['name']}}</a></h2>
+<h3>Price: {{moon['price']}}</h3>
 
 {% endfor %}
 
 <br>
 
+<h1>Secret Moons</h1>
+
 {% for moon in params[4] %}
 
-<h1><a href="/moons/{{moon['id']}}">{{moon['name']}}</a></h1>
-<h2>Price: {{moon['price']}}</h2>
+<h2><a href="/moons/{{moon['id']}}">{{moon['name']}}</a></h2>
+<h3>Price: {{moon['price']}}</h3>
 
 {% endfor %}
 
