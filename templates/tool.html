@@ -9,13 +9,19 @@
 
 {% block content %}
 
-<h2>Price: {{params["price"]}} credits</h2>
+<h2>Price: <cred>▮</cred>{{params["price"]}}</h2>
 
 {% if params['upgrade'] == 1 %}
 <h2>Type: Ship Upgrade</h2>
 {% else %}
 <h2>Type: Item</h2>
-<h2>Weight: {{params["weight"]}} lbs</h2>
+<h2>
+    {% if params["weight"] == -1 %}
+    Weight: Cannot be picked up
+    {% else %}
+    Weight: {{params["weight"]}} lbs
+    {% endif %}
+</h2>
 {% endif %}
 
 <h2>Description:</h2>

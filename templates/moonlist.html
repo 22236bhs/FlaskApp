@@ -9,49 +9,25 @@
 
 {% block content %}
 
+{% for i in range(4) %}
 
-{% for moon in params[0] %}
+{% for moon in params[i] %}
 
 <h2><a href="/moons/{{moon['id']}}">{{moon['name']}}</a></h2>
-<h3>Price: {{moon['price']}} credits</h3>
+<h3>Price: <cred>▮</cred>{{moon['price']}}</h3>
 
 {% endfor %}
 
 <br>
 
-{% for moon in params[1] %}
-
-<h2><a href="/moons/{{moon['id']}}">{{moon['name']}}</a></h2>
-<h3>Price: {{moon['price']}}</h3>
-
 {% endfor %}
-
-<br>
-
-{% for moon in params[2] %}
-
-<h2><a href="/moons/{{moon['id']}}">{{moon['name']}}</a></h2>
-<h3>Price: {{moon['price']}}</h3>
-
-{% endfor %}
-
-<br>
-
-{% for moon in params[3] %}
-
-<h2><a href="/moons/{{moon['id']}}">{{moon['name']}}</a></h2>
-<h3>Price: {{moon['price']}}</h3>
-
-{% endfor %}
-
-<br>
 
 <h1>Secret Moons</h1>
 
 {% for moon in params[4] %}
 
 <h2><a href="/moons/{{moon['id']}}">{{moon['name']}}</a></h2>
-<h3>Price: {{moon['price']}}</h3>
+<h3>Price: <cred>▮</cred>{{moon['price']}}</h3>
 
 {% endfor %}
 
