@@ -1,4 +1,4 @@
-from flask import Flask, render_template
+from flask import Flask, render_template, request
 import sqlite3
 
 app = Flask(__name__)
@@ -16,12 +16,24 @@ def home():
     return render_template("main.html", params=params, title="Home")
 
 
-@app.route("/entity") #Entity list
+@app.route("/entity", methods=['GET', 'POST']) #Entity list
 def entities():
+    sortQueries = {
+        "0": ("Default", ""),
+        "1": ("Danger", "ORDER BY danger"),
+    }
+    sortdir = request.form.get("sortdir")
+    if not sortdir:
+        sortdir = ""
+    sort = request.form.get("sort")
+    if sort:
+        order = sortQueries[sort][1]
+    else:
+        order = sortQueries["0"][1]
     with sqlite3.connect(DATABASE) as db:
         data = db.cursor().execute('''
                                    SELECT id, name, setting 
-                                   FROM Entities;''').fetchall()
+                                   FROM Entities''' + " " + order + " " + sortdir + ";").fetchall()
     
     params = []
     for a in range(3):
@@ -31,7 +43,7 @@ def entities():
             "setting": data[i][2]
         } for i in range(len(data)) if data[i][2] == a + 1])
 
-    return render_template("entitylist.html", params=params, title="Entity List")
+    return render_template("entitylist.html", params=params, title="Entity List", sort=sortQueries)
 
 
 @app.route("/entity/<int:id>") #Entity data page
@@ -109,20 +121,37 @@ def moon(id):
     return render_template("moon.html", params=params, title=params["name"])
 
 
-@app.route("/tools") #Tool list
+@app.route("/tools", methods=['GET', 'POST']) #Tool list
 def tools():
+    sortQueries = {
+        "0": ("Default", ""),
+        "1": ("Alphabetical", "ORDER BY name"),
+        "2": ("Price", "ORDER BY price"),
+    }
+    sortdir = request.form.get("sortdir")
+    if not sortdir:
+        sortdir = ""
+    sort = request.form.get("sort")
+    if sort:
+        order = sortQueries[sort][1]
+    else:
+        order = sortQueries["0"][1]
     with sqlite3.connect(DATABASE) as db:
         data = db.cursor().execute('''
-                                   SELECT id, name, upgrade
-                                   FROM Tools;''').fetchall()
+                                   SELECT id, name, upgrade, price
+                                   FROM Tools''' + " " + order + " " + sortdir + ";").fetchall()
+    
+
+
     params = []
     for a in range(2):
         params.append([{
             "id": data[i][0],
-            "name": data[i][1]
+            "name": data[i][1],
+            "price": data[i][3]
         } for i in range(len(data)) if data[i][2] == a])
 
-    return render_template("toollist.html", params=params, title="Tool List")
+    return render_template("toollist.html", params=params, title="Tool List", sort=sortQueries)
 
 
 @app.route("/tools/<int:id>") #Tool data page

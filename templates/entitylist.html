@@ -9,6 +9,21 @@
 
 {% block content %}
 
+<form action="/entity" method="post">
+    <select name="sort">
+        {% for i in sort %}
+        <option value="{{i}}">{{sort[i][0]}}</option>
+        {% endfor %}
+    </select>
+
+    <select name="sortdir">
+        <option value="ASC">Ascending</option>
+        <option value="DESC">Descending</option>
+    </select>
+
+    <input type="submit" value="Sort">
+</form>
+
 <h1>Indoor Entities:</h1>
 {% for entity in params[0] %}
 
