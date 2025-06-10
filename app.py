@@ -10,7 +10,7 @@ DATABASE = "LCdb.db"
 def home():
     params = [("Moons", "The moons the autopilot can route to.", "moons"),
               ("Tools", "The items and upgrades you can buy or find.", "tools"),
-              ("Entites", "The entities you may encounter.", "entity"),
+              ("Entities", "The entities you may encounter.", "entity"),
               ("Weathers", "The weathers a moon can have.", "weathers"),
               ("Interiors", "The interiors a moon's facility may have.", "interiors")]
     return render_template("main.html", params=params, title="Home")
@@ -19,8 +19,8 @@ def home():
 @app.route("/entity", methods=['GET', 'POST']) #Entity list
 def entities():
     sortQueries = {
-        "0": ("Default", ""),
-        "1": ("Danger", "ORDER BY danger"),
+        "0": ("Danger", "ORDER BY danger"),
+        "1": ("Alphabetical", "ORDER BY name")
     }
     sortdir = request.form.get("sortdir")
     if not sortdir:

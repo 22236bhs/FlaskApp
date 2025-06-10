@@ -30,3 +30,14 @@ cred{
     padding: 10px;
     width: 40%;  
 }
+
+select, input{
+    font-size: 150%;
+    border: 1px solid rgb(83, 221, 58);
+}
+
+input{
+    color: black;
+    background-color: rgb(83, 221, 58);
+    border: 1px solid rgb(61, 161, 44);
+}
