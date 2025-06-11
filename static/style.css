@@ -41,3 +41,9 @@ input{
     background-color: rgb(83, 221, 58);
     border: 1px solid rgb(61, 161, 44);
 }
+
+.pictures-grid{
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+}

@@ -32,7 +32,7 @@ def entities():
         order = sortQueries["0"][1]
     with sqlite3.connect(DATABASE) as db:
         data = db.cursor().execute('''
-                                   SELECT id, name, setting 
+                                   SELECT id, name, setting
                                    FROM Entities''' + " " + order + " " + sortdir + ";").fetchall()
     
     params = []
@@ -66,7 +66,7 @@ def entity(id):
         "power": data[7],
         "max_spawned": data[8],
         "description": data[9],
-        "pictures": data[10]
+        "pictures": data[10].split(" ")
     }
     params["bestiary"] = params["bestiary"].replace("\\n", "\n")
     return render_template("entity.html", params=params, title=params["name"])
@@ -115,7 +115,7 @@ def moon(id):
         "fauna": data[9],
         "description": data[10],
         "tier": data[11],
-        "pictures": data[12],
+        "pictures": data[12].split(" "),
         "weathers": weatherdata
     }
     return render_template("moon.html", params=params, title=params["name"])
@@ -168,7 +168,7 @@ def tool(id):
         "description": data[2],
         "upgrade": data[3],
         "weight": data[4],
-        "pictures": data[5]
+        "pictures": data[5].split(" ")
     }
         
     return render_template("tool.html", params=params, title=params["name"])
@@ -204,7 +204,7 @@ def weather(id):
         "name": data[0],
         "moons": moondata,
         "description": data[1],
-        "pictures": data[2]
+        "pictures": data[2].split(" ")
     }
     return render_template("weather.html", params=params, title=params["name"])
 
@@ -232,7 +232,7 @@ def interior(id):
     params = {
         "name": data[0],
         "description": data[1],
-        "pictures": data[2]
+        "pictures": data[2].split(" ")
     }
 
     return render_template("interior.html", params=params, title=params['name'])
