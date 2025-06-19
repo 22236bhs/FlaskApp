@@ -47,3 +47,8 @@ input{
     grid-template-columns: 1fr 1fr;
     gap: 10px;
 }
+
+.moon-entry{
+    width: 30%;
+    font-size: inherit;
+}

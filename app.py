@@ -19,8 +19,8 @@ def home():
 @app.route("/entity", methods=['GET', 'POST']) #Entity list
 def entities():
     sortQueries = {
-        "0": ("Danger", "ORDER BY danger"),
-        "1": ("Alphabetical", "ORDER BY name")
+        "0": ("Alphabetical", ""),
+        "1": ("Danger", "ORDER BY danger")
     }
     sortdir = request.form.get("sortdir")
     if not sortdir:
@@ -140,9 +140,7 @@ def tools():
         data = db.cursor().execute('''
                                    SELECT id, name, upgrade, price
                                    FROM Tools''' + " " + order + " " + sortdir + ";").fetchall()
-    
-
-
+        
     params = []
     for a in range(2):
         params.append([{
@@ -170,7 +168,7 @@ def tool(id):
         "weight": data[4],
         "pictures": data[5].split(" ")
     }
-        
+    
     return render_template("tool.html", params=params, title=params["name"])
 
 

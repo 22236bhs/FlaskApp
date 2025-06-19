@@ -12,10 +12,12 @@
 {% for i in range(4) %}
 
 {% for moon in params[i] %}
-
-<h2><a href="/moons/{{moon['id']}}">{{moon['name']}}</a></h2>
+<h1 class="moon-entry">
+<a href="/moons/{{moon['id']}}">
+<h2>{{moon['name']}}</h2>
 <h3>Price: <cred>▮</cred>{{moon['price']}}</h3>
-
+</a>
+</h1>
 {% endfor %}
 
 <br>
@@ -25,10 +27,12 @@
 <h1>Secret Moons</h1>
 
 {% for moon in params[4] %}
-
-<h2><a href="/moons/{{moon['id']}}">{{moon['name']}}</a></h2>
+<h1 class="moon-entry">
+<a href="/moons/{{moon['id']}}">
+<h2>{{moon['name']}}</h2>
 <h3>Price: <cred>▮</cred>{{moon['price']}}</h3>
-
+</a>
+</h1>
 {% endfor %}
 
 {% endblock %}
