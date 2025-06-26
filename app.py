@@ -19,7 +19,7 @@ def home():
 @app.route("/entity", methods=['GET', 'POST']) #Entity list
 def entities():
     sortQueries = {
-        "0": ("Alphabetical", ""),
+        "0": ("Alphabetical", "ORDER BY name"),
         "1": ("Danger", "ORDER BY danger")
     }
     sortdir = request.form.get("sortdir")
