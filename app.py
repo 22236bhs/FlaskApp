@@ -4,7 +4,18 @@ import sqlite3
 app = Flask(__name__)
 DATABASE = "LCdb.db"
 
-#▮
+
+def execute_query(query, params=()):
+    with sqlite3.connect(DATABASE) as db:
+        return db.cursor().execute(query, params).fetchall()
+
+
+def set_picture_list(picture_string):
+    if picture_string:
+        return picture_string.split(" ")
+    else:
+        return []
+
 
 @app.route("/") #Home page for selection
 def home():
@@ -18,7 +29,7 @@ def home():
 
 @app.route("/entity", methods=['GET', 'POST']) #Entity list
 def entities():
-    sortQueries = {
+    sort_queries = {
         "0": ("Alphabetical", "ORDER BY name"),
         "1": ("Danger", "ORDER BY danger")
     }
@@ -27,13 +38,12 @@ def entities():
         sortdir = ""
     sort = request.form.get("sort")
     if sort:
-        order = sortQueries[sort][1]
+        order = sort_queries[sort][1]
     else:
-        order = sortQueries["0"][1]
-    with sqlite3.connect(DATABASE) as db:
-        data = db.cursor().execute('''
-                                   SELECT id, name, setting
-                                   FROM Entities''' + " " + order + " " + sortdir + ";").fetchall()
+        order = sort_queries["0"][1]
+    data = execute_query('''
+                            SELECT id, name, setting
+                            FROM Entities''' + " " + order + " " + sortdir + ";")
     
     params = []
     for a in range(3):
@@ -43,18 +53,18 @@ def entities():
             "setting": data[i][2]
         } for i in range(len(data)) if data[i][2] == a + 1])
 
-    return render_template("entitylist.html", params=params, title="Entity List", sort=sortQueries)
+    return render_template("entitylist.html", params=params, title="Entity List", sort=sort_queries)
 
 
 @app.route("/entity/<int:id>") #Entity data page
 def entity(id):
-    with sqlite3.connect(DATABASE) as db:
-        data = db.cursor().execute('''
-                                   SELECT Entities.name, danger, bestiary, Setting.name, Moons.name, sp_hp, mp_hp, power, max_spawned, Entities.description, Entities.pictures
-                                   FROM Entities
-                                   JOIN Moons ON Entities.fav_moon = Moons.id
-                                   JOIN Setting ON Entities.setting = Setting.id
-                                   WHERE Entities.id = ?;''', (id,)).fetchall()[0]
+    data = execute_query('''
+                        SELECT Entities.name, danger, bestiary, Setting.name, Moons.name, sp_hp, mp_hp, power, max_spawned, Entities.description, Entities.pictures
+                        FROM Entities
+                        JOIN Moons ON Entities.fav_moon = Moons.id
+                        JOIN Setting ON Entities.setting = Setting.id
+                        WHERE Entities.id = ?;''', (id,))[0]
+    
     params = {
         "name": data[0],
         "danger": data[1],
@@ -66,7 +76,7 @@ def entity(id):
         "power": data[7],
         "max_spawned": data[8],
         "description": data[9],
-        "pictures": data[10].split(" ")
+        "pictures": set_picture_list(data[10])
     }
     params["bestiary"] = params["bestiary"].replace("\\n", "\n")
     return render_template("entity.html", params=params, title=params["name"])
@@ -74,10 +84,9 @@ def entity(id):
 
 @app.route("/moons") #Moon list
 def moons():
-    with sqlite3.connect(DATABASE) as db:
-        data = db.cursor().execute('''
-                                   SELECT id, name, price, tier
-                                   FROM Moons;''').fetchall()
+    data = execute_query('''
+                        SELECT id, name, price, tier
+                        FROM Moons;''')
     params = []
     for a in range(5):
         params.append([{
@@ -91,18 +100,17 @@ def moons():
 
 @app.route("/moons/<int:id>") #Moon data page
 def moon(id):
-    with sqlite3.connect(DATABASE) as db:
-        cur = db.cursor()
-        data = cur.execute('''
-                                   SELECT Moons.name, RiskLevels.name, price, Interiors.id, Interiors.name, max_indoor_power, max_outdoor_power, conditions, history, fauna, Moons.description, tier, Moons.pictures
-                                   FROM Moons
-                                   JOIN RiskLevels ON Moons.risk_level = RiskLevels.id
-                                   JOIN Interiors ON Moons.interior = Interiors.id
-                                   WHERE Moons.id = ?;''', (id,)).fetchall()[0]
-        weatherdata = cur.execute('''
-                                  SELECT id, name FROM Weathers WHERE id IN (
-                                  SELECT weather_id FROM MoonWeathers WHERE moon_id = ?);''', (id,)).fetchall()
-        
+    data = execute_query('''
+                        SELECT Moons.name, RiskLevels.name, price, Interiors.id, Interiors.name, max_indoor_power, max_outdoor_power, conditions, history, fauna, Moons.description, tier, Moons.pictures
+                        FROM Moons
+                        JOIN RiskLevels ON Moons.risk_level = RiskLevels.id
+                        JOIN Interiors ON Moons.interior = Interiors.id
+                        WHERE Moons.id = ?;''', (id,))[0]
+    
+    weatherdata = execute_query('''
+                                SELECT id, name FROM Weathers WHERE id IN (
+                                SELECT weather_id FROM MoonWeathers WHERE moon_id = ?);''', (id,))
+    
     params = {
         "name": data[0],
         "risk_level": data[1],
@@ -115,7 +123,7 @@ def moon(id):
         "fauna": data[9],
         "description": data[10],
         "tier": data[11],
-        "pictures": data[12].split(" "),
+        "pictures": set_picture_list(data[12]),
         "weathers": weatherdata
     }
     return render_template("moon.html", params=params, title=params["name"])
@@ -123,23 +131,23 @@ def moon(id):
 
 @app.route("/tools", methods=['GET', 'POST']) #Tool list
 def tools():
-    sortQueries = {
+    sort_queries = {
         "0": ("Default", ""),
         "1": ("Alphabetical", "ORDER BY name"),
         "2": ("Price", "ORDER BY price"),
     }
-    sortdir = request.form.get("sortdir")
-    if not sortdir:
-        sortdir = ""
+    sort_dir = request.form.get("sortdir")
+    if not sort_dir:
+        sort_dir = ""
     sort = request.form.get("sort")
     if sort:
-        order = sortQueries[sort][1]
+        order = sort_queries[sort][1]
     else:
-        order = sortQueries["0"][1]
-    with sqlite3.connect(DATABASE) as db:
-        data = db.cursor().execute('''
-                                   SELECT id, name, upgrade, price
-                                   FROM Tools''' + " " + order + " " + sortdir + ";").fetchall()
+        order = sort_queries["0"][1]
+    
+    data = execute_query('''
+                        SELECT id, name, upgrade, price
+                        FROM Tools''' + " " + order + " " + sort_dir + ";")
         
     params = []
     for a in range(2):
@@ -149,24 +157,23 @@ def tools():
             "price": data[i][3]
         } for i in range(len(data)) if data[i][2] == a])
 
-    return render_template("toollist.html", params=params, title="Tool List", sort=sortQueries)
+    return render_template("toollist.html", params=params, title="Tool List", sort=sort_queries)
 
 
 @app.route("/tools/<int:id>") #Tool data page
 def tool(id):
-    with sqlite3.connect(DATABASE) as db:
-        data = db.cursor().execute('''
-                                   SELECT name, price, description, upgrade, weight, pictures
-                                   FROM Tools
-                                   WHERE id = ?;
-                                   ''', (id,)).fetchall()[0]
+    data = execute_query('''
+                        SELECT name, price, description, upgrade, weight, pictures
+                        FROM Tools
+                        WHERE id = ?;''', (id,))[0]
+
     params = {
         "name": data[0],
         "price": data[1],
         "description": data[2],
         "upgrade": data[3],
         "weight": data[4],
-        "pictures": data[5].split(" ")
+        "pictures": set_picture_list(data[5])
     }
     
     return render_template("tool.html", params=params, title=params["name"])
@@ -174,10 +181,10 @@ def tool(id):
 
 @app.route("/weathers") #Weather list
 def weathers():
-    with sqlite3.connect(DATABASE) as db:
-        data = db.cursor().execute('''
-                                   SELECT id, name
-                                   FROM Weathers;''').fetchall()
+    data = execute_query('''
+                        SELECT id, name
+                        FROM Weathers;''')
+    
     params = [{
         "id": data[i][0],
         "name": data[i][1]
@@ -188,49 +195,49 @@ def weathers():
 
 @app.route("/weathers/<int:id>") #Weather data page
 def weather(id):
-    with sqlite3.connect(DATABASE) as db:
-        cur = db.cursor()
-        data = cur.execute('''
-                           SELECT name, description, pictures
-                           FROM Weathers
-                           WHERE id = ?;''', (id,)).fetchall()[0]
-        moondata = cur.execute('''
-                               SELECT id, name FROM Moons WHERE id IN (
-                               SELECT moon_id FROM MoonWeathers WHERE weather_id = ?);''', (id,)).fetchall()
+    data = execute_query('''
+                        SELECT name, description, pictures
+                        FROM Weathers
+                        WHERE id = ?;''', (id,))[0]
+    
+    moondata = execute_query('''
+                            SELECT id, name FROM Moons WHERE id IN (
+                            SELECT moon_id FROM MoonWeathers WHERE weather_id = ?);''', (id,))
     
     params = {
         "name": data[0],
         "moons": moondata,
         "description": data[1],
-        "pictures": data[2].split(" ")
+        "pictures": set_picture_list(data[2])
     }
     return render_template("weather.html", params=params, title=params["name"])
 
 
 @app.route("/interiors") #Interior list
 def interiors():
-    with sqlite3.connect(DATABASE) as db:
-        data = db.cursor().execute('''
-                                   SELECT id, name
-                                   FROM Interiors;''').fetchall()
+    data = execute_query('''
+                        SELECT id, name
+                        FROM Interiors;''')
+
     params = [{
         "id": data[i][0],
         "name": data[i][1]
     } for i in range(len(data)) if data[i][1] != "N/A"]
+
     return render_template("interiorlist.html", params=params, title="Interior List")
 
 
 @app.route("/interiors/<int:id>") #Interior data page
 def interior(id):
-    with sqlite3.connect(DATABASE) as db:
-        data = db.cursor().execute('''
-                                   SELECT name, description, pictures
-                                   FROM Interiors
-                                   WHERE id = ?;''', (id,)).fetchall()[0]
+    data = execute_query('''
+                        SELECT name, description, pictures
+                        FROM Interiors
+                        WHERE id = ?;''', (id,))[0]
+
     params = {
         "name": data[0],
         "description": data[1],
-        "pictures": data[2].split(" ")
+        "pictures": set_picture_list(data[2])
     }
 
     return render_template("interior.html", params=params, title=params['name'])
