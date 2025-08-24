@@ -243,5 +243,19 @@ def interior(id):
     return render_template("interior.html", params=params, title=params['name'])
 
 
+@app.route("/login")
+def login():
+    return render_template("login.html")
+
+
+@app.errorhandler(404)
+def error404(_):
+    return render_template("error_page.html", error_code=404), 404
+
+
+@app.errorhandler(400)
+def error400(_):
+    return render_template("error_page.html", error_code=400), 400
+
 if __name__ == "__main__":
     app.run(debug=True)
