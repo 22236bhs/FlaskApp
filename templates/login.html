@@ -19,8 +19,8 @@
     <br>
     <input type="submit" value="Log in">
 </form>
-{% if login_error %}
-<h1>{{login_error}}</h1>
+{% if login_message %}
+<h1>{{login_message}}</h1>
 {% endif %}
 {% endblock %}
 <!--

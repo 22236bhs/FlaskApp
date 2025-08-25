@@ -52,3 +52,11 @@ input{
     width: 30%;
     font-size: inherit;
 }
+
+.form-label{
+    font-size: 150%;
+}
+
+.text-area-input{
+    font-size: 130%;
+}

@@ -3,6 +3,9 @@
 {% block header %}
 
 <h3><a href="/">* BACK</a></h3>
+{% if admin %}
+<h2><a href="/admin/moons">* Add Moon</a></h3>
+{% endif %}
 <h1>Welcome to the Moon Catalogue</h1>
 
 {% endblock %}

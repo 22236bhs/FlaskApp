@@ -1,0 +1,83 @@
+{% extends "layout.html" %}
+
+{% block header %}
+<h3><a href="/moons">* BACK</a></h3>
+<h1>Add a new Moon</h1>
+{% endblock %}
+
+{% block content %}
+<form action="/admin/moons/add" method="post">
+
+    <label class="form-label">Name</label>
+    <br><br>
+    <input type="text" name="name">
+    <br><br><br>
+
+    <label class="form-label">Risk Level</label>
+    <br><br>
+    <select name="risk_level">
+        {% for risk_level in risk_levels %}
+        <option value="{{risk_level[0]}}">{{risk_level[1]}}</option>
+        {% endfor %}
+    </select>
+    <br><br><br>
+
+    <label class="form-label">Price</label>
+    <br><br>
+    <input type="number" name="price">
+    <br><br><br>
+
+    <label class="form-label">Interior</label>
+    <br><br>
+    <select name="interior">
+        {% for interior in interiors %}
+        <option value="{{interior[0]}}">{{interior[1]}}</option>
+        {% endfor %}
+    </select>
+    <br><br><br>
+
+    <label class="form-label">Max Indoor Power</label>
+    <br><br>
+    <input type="number" name="max_indoor_power">
+    <br><br><br>
+
+    <label class="form-label">Max Outdoor Power</label>
+    <br><br>
+    <input type="number" name="max_outdoor_power">
+    <br><br><br>
+
+    <label class="form-label">Conditions</label>
+    <br><br>
+    <textarea name="conditions" class="text-area-input"></textarea>
+    <br><br><br>
+
+    <label class="form-label">History</label>
+    <br><br>
+    <textarea name="history" class="text-area-input"></textarea>
+    <br><br><br>
+
+    <label class="form-label">Fauna</label>
+    <br><br>
+    <textarea name="fauna" class="text-area-input"></textarea>
+    <br><br><br>
+
+    <label class="form-label">Description</label>
+    <br><br>
+    <textarea name="description"></textarea>
+    <br><br><br>
+
+    <label class="form-label">Tier</label>
+    <br><br>
+    <select name="tier">
+        <option value="1">Safe</option>
+        <option value="2">Tier 1</option>
+        <option value="3">Tier 2</option>
+        <option value="4">Tier 3</option>
+        <option value="5">Secret</option>
+    </select>
+    <br><br><br>
+
+    <input type="submit" value="Add Moon">
+    <br><br><br>
+</form>
+{% endblock %}

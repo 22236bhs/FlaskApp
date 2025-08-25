@@ -8,7 +8,7 @@ USERNAME_MAX_LENGTH = 16
 PASSWORD_MAX_LENGTH = 20
 
 admin = False
-login_error = ""
+login_message = ""
 
 def execute_query(query, params=()):
     with sqlite3.connect(DATABASE) as db:
@@ -100,7 +100,7 @@ def moons():
             "price": data[i][2]
         } for i in range(len(data)) if data[i][3] == a + 1])
     
-    return render_template("moonlist.html", params=params, title="Moon List")
+    return render_template("moonlist.html", params=params, title="Moon List", admin=admin)
 
 
 @app.route("/moons/<int:id>") #Moon data page
@@ -250,13 +250,15 @@ def interior(id):
 
 @app.route("/login")
 def login():
-
-    return render_template("login.html", login_error=login_error)
+    global login_message
+    current_login_message = login_message
+    login_message = ""
+    return render_template("login.html", login_message=current_login_message)
 
 
 @app.route("/loginregister", methods=['GET', 'POST'])
 def loginregister():
-    global login_error, admin
+    global login_message, admin
     success = False
     userid = 0
     username = request.form.get("username")
@@ -269,13 +271,14 @@ def loginregister():
             userid = user[0]
             break
     if success:
+        success = False
         if check_password_hash(execute_query("SELECT passwordhash FROM AdminLogins WHERE id=?", (userid,))[0][0], password):
             admin = True
-            login_error = "Login Successful"
-        else:
-            login_error = "Incorrect Password"
-    else:
-        login_error = "User not found"
+            login_message = "Login Successful"
+            success = True
+
+    if not success:
+        login_message = "Invalid Username or Password"
     return app.redirect("/login")
 
 
@@ -286,6 +289,41 @@ def logout():
     return app.redirect("/")
     
 
+@app.route("/admin/moons")
+def admin_moons():
+    if admin:
+        risk_level_entries = execute_query("SELECT id, name FROM RiskLevels;")
+        interior_entries = execute_query("SELECT id, name FROM Interiors;")
+        return render_template("moonadmin.html", risk_levels=risk_level_entries, interiors=interior_entries)
+    else:
+        return render_template("adminpermsdenied.html")
+    
+
+@app.route("/admin/moons/add", methods=['GET', 'POST'])
+def add_moon():
+    if admin:
+        name = request.form.get("name")
+        risk_level = request.form.get("risk_level")
+        price = request.form.get("price")
+        moon_interior = request.form.get("interior")
+        max_indoor_power = request.form.get("max_indoor_power")
+        max_outdoor_power = request.form.get("max_outdoor_power")
+        conditions = request.form.get("conditions")
+        history = request.form.get("history")
+        fauna = request.form.get("fauna")
+        description = request.form.get("description")
+        tier = request.form.get("tier")
+        print(history)
+
+        execute_query(
+            '''
+            INSERT INTO Moons (name, risk_level, price, interior, max_indoor_power, max_outdoor_power, conditions, history, fauna, description, tier, pictures)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)''',
+            (name, risk_level, price, moon_interior, max_indoor_power, max_outdoor_power, conditions, history, fauna, description, tier, "placeholder_image")
+        )
+        return app.redirect("/moons")
+    else:
+        return render_template("adminpermsdenied.html")
 
 @app.errorhandler(404)
 def error404(_):
