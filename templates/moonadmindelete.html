@@ -1,0 +1,12 @@
+{% extends "layout.html" %}
+
+{% block header %}
+<h3><a href="/moons">* BACK</a></h3>
+<h1>Select a moon to delete</h1>
+{% endblock %}
+
+{% block content %}
+{% for moon in moons %}
+<h1><a href="/admin/deletemoon/{{moon[0]}}">* {{moon[1]}}</a></h1>
+{% endfor %}
+{% endblock %}

@@ -20,6 +20,10 @@ def set_picture_list(picture_string):
         return picture_string.split(" ")
     else:
         return []
+    
+
+def admin_perms_denied():
+    return render_template("adminpermsdenied.html")
 
 
 @app.route("/") #Home page for selection
@@ -131,6 +135,15 @@ def moon(id):
         "pictures": set_picture_list(data[12]),
         "weathers": weatherdata
     }
+    if params["conditions"]:
+        params["conditions"] = params["conditions"].replace("\\n", "\n")
+    if params["history"]:
+        params["history"] = params["history"].replace("\\n", "\n")
+    if params["fauna"]:
+        params["fauna"] = params["fauna"].replace("\\n", "\n")
+    if params["description"]:
+        params["description"] = params["description"].replace("\\n", "\n")
+
     return render_template("moon.html", params=params, title=params["name"])
 
 
@@ -253,7 +266,7 @@ def login():
     global login_message
     current_login_message = login_message
     login_message = ""
-    return render_template("login.html", login_message=current_login_message)
+    return render_template("login.html", login_message=current_login_message, admin=admin)
 
 
 @app.route("/loginregister", methods=['GET', 'POST'])
@@ -289,17 +302,18 @@ def logout():
     return app.redirect("/")
     
 
-@app.route("/admin/moons")
-def admin_moons():
+@app.route("/admin/moons/add")
+def add_moon_page():
     if admin:
         risk_level_entries = execute_query("SELECT id, name FROM RiskLevels;")
         interior_entries = execute_query("SELECT id, name FROM Interiors;")
-        return render_template("moonadmin.html", risk_levels=risk_level_entries, interiors=interior_entries)
+        weather_entries = execute_query("SELECT id, name FROM Weathers;")
+        return render_template("moonadminadd.html", risk_levels=risk_level_entries, interiors=interior_entries, weathers=weather_entries)
     else:
-        return render_template("adminpermsdenied.html")
+        return admin_perms_denied()
     
 
-@app.route("/admin/moons/add", methods=['GET', 'POST'])
+@app.route("/admin/addmoon", methods=['GET', 'POST'])
 def add_moon():
     if admin:
         name = request.form.get("name")
@@ -313,25 +327,55 @@ def add_moon():
         fauna = request.form.get("fauna")
         description = request.form.get("description")
         tier = request.form.get("tier")
-        print(history)
+        conditions = conditions.replace("\n", "\\n")
+        history = history.replace("\n", "\\n")
+        fauna = fauna.replace("\n", "\\n")
+        description = description.replace("\n", "\\n")
 
+        weather_entries = execute_query("SELECT id FROM Weathers;")
+        weather_list = []
+        for i in range(len(weather_entries)):
+            if request.form.get("weather" + str(weather_entries[i][0])):
+                weather_list.append(weather_entries[i][0])
+        
+        
         execute_query(
             '''
             INSERT INTO Moons (name, risk_level, price, interior, max_indoor_power, max_outdoor_power, conditions, history, fauna, description, tier, pictures)
             VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)''',
             (name, risk_level, price, moon_interior, max_indoor_power, max_outdoor_power, conditions, history, fauna, description, tier, "placeholder_image")
         )
+        moon_id = len(execute_query("SELECT id FROM Moons;"))
+        for i in weather_list:
+            execute_query("INSERT INTO MoonWeathers (moon_id, weather_id) VALUES (?, ?)", (moon_id, i))
         return app.redirect("/moons")
     else:
-        return render_template("adminpermsdenied.html")
+        return admin_perms_denied()
+
+
+@app.route("/admin/moons/delete")
+def delete_moon_page():
+    if admin:
+        moon_list = execute_query("SELECT id, name FROM Moons")
+        return render_template("moonadmindelete.html", moons=moon_list)
+    else:
+        return admin_perms_denied()
+
+
+@app.route("/admin/deletemoon/<int:id>")
+def delete_moon(id):
+    execute_query("DELETE FROM Moons WHERE id=?;", (id,))
+    execute_query("DELETE FROM MoonWeathers WHERE moon_id=?", (id,))
+    return app.redirect("/moons")
+
 
 @app.errorhandler(404)
-def error404(_):
+def error404(e):
     return render_template("error_page.html", error_code=404), 404
 
 
 @app.errorhandler(400)
-def error400(_):
+def error400(e):
     return render_template("error_page.html", error_code=400), 400
 
 if __name__ == "__main__":

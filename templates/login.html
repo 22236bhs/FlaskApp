@@ -6,6 +6,7 @@
 {% endblock %}
 
 {% block content %}
+{% if not admin %}
 <form action="/loginregister" method="post">
     <label>Username</label>
     <br>
@@ -19,6 +20,7 @@
     <br>
     <input type="submit" value="Log in">
 </form>
+{% endif %}
 {% if login_message %}
 <h1>{{login_message}}</h1>
 {% endif %}

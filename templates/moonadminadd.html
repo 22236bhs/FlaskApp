@@ -6,7 +6,7 @@
 {% endblock %}
 
 {% block content %}
-<form action="/admin/moons/add" method="post">
+<form action="/admin/addmoon" method="post">
 
     <label class="form-label">Name</label>
     <br><br>
@@ -63,7 +63,7 @@
 
     <label class="form-label">Description</label>
     <br><br>
-    <textarea name="description"></textarea>
+    <textarea name="description" class="text-area-input"></textarea>
     <br><br><br>
 
     <label class="form-label">Tier</label>
@@ -75,6 +75,16 @@
         <option value="4">Tier 3</option>
         <option value="5">Secret</option>
     </select>
+    <br><br><br>
+
+    <label class="form-label">Weathers</label>
+    <br>
+    {% for weather in weathers %}
+    <br>
+    <input type="checkbox" name="{{'weather' + weather[0]|string}}">
+    <label style="font-size: 125%;">{{weather[1]}}</label>
+    {% endfor %}
+
     <br><br><br>
 
     <input type="submit" value="Add Moon">
