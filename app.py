@@ -62,7 +62,7 @@ def entities():
             "setting": data[i][2]
         } for i in range(len(data)) if data[i][2] == a + 1])
 
-    return render_template("entitylist.html", params=params, title="Entity List", sort=sort_queries)
+    return render_template("entities/entitylist.html", params=params, title="Entity List", sort=sort_queries)
 
 
 @app.route("/entity/<int:id>") #Entity data page
@@ -88,7 +88,7 @@ def entity(id):
         "pictures": set_picture_list(data[10])
     }
     params["bestiary"] = params["bestiary"].replace("\\n", "\n")
-    return render_template("entity.html", params=params, title=params["name"])
+    return render_template("entities/entity.html", params=params, title=params["name"])
 
 
 @app.route("/moons") #Moon list
@@ -104,7 +104,7 @@ def moons():
             "price": data[i][2]
         } for i in range(len(data)) if data[i][3] == a + 1])
     
-    return render_template("moonlist.html", params=params, title="Moon List", admin=admin)
+    return render_template("moons/moonlist.html", params=params, title="Moon List", admin=admin)
 
 
 @app.route("/moons/<int:id>") #Moon data page
@@ -144,7 +144,7 @@ def moon(id):
     if params["description"]:
         params["description"] = params["description"].replace("\\n", "\n")
 
-    return render_template("moon.html", params=params, title=params["name"])
+    return render_template("moons/moon.html", params=params, title=params["name"])
 
 
 @app.route("/tools", methods=['GET', 'POST']) #Tool list
@@ -175,7 +175,7 @@ def tools():
             "price": data[i][3]
         } for i in range(len(data)) if data[i][2] == a])
 
-    return render_template("toollist.html", params=params, title="Tool List", sort=sort_queries)
+    return render_template("tools/toollist.html", params=params, title="Tool List", sort=sort_queries)
 
 
 @app.route("/tools/<int:id>") #Tool data page
@@ -194,7 +194,7 @@ def tool(id):
         "pictures": set_picture_list(data[5])
     }
     
-    return render_template("tool.html", params=params, title=params["name"])
+    return render_template("tools/tool.html", params=params, title=params["name"])
 
 
 @app.route("/weathers") #Weather list
@@ -208,7 +208,7 @@ def weathers():
         "name": data[i][1]
     } for i in range(len(data))]
 
-    return render_template("weatherlist.html", params=params, title="Weather List")
+    return render_template("weathers/weatherlist.html", params=params, title="Weather List")
 
 
 @app.route("/weathers/<int:id>") #Weather data page
@@ -228,7 +228,7 @@ def weather(id):
         "description": data[1],
         "pictures": set_picture_list(data[2])
     }
-    return render_template("weather.html", params=params, title=params["name"])
+    return render_template("weathers/weather.html", params=params, title=params["name"])
 
 
 @app.route("/interiors") #Interior list
@@ -242,7 +242,7 @@ def interiors():
         "name": data[i][1]
     } for i in range(len(data)) if data[i][1] != "N/A"]
 
-    return render_template("interiorlist.html", params=params, title="Interior List")
+    return render_template("interiors/interiorlist.html", params=params, title="Interior List")
 
 
 @app.route("/interiors/<int:id>") #Interior data page
@@ -258,7 +258,7 @@ def interior(id):
         "pictures": set_picture_list(data[2])
     }
 
-    return render_template("interior.html", params=params, title=params['name'])
+    return render_template("interiors/interior.html", params=params, title=params['name'])
 
 
 @app.route("/login")
@@ -308,7 +308,7 @@ def add_moon_page():
         risk_level_entries = execute_query("SELECT id, name FROM RiskLevels;")
         interior_entries = execute_query("SELECT id, name FROM Interiors;")
         weather_entries = execute_query("SELECT id, name FROM Weathers;")
-        return render_template("moonadminadd.html", risk_levels=risk_level_entries, interiors=interior_entries, weathers=weather_entries)
+        return render_template("moons/moonadminadd.html", risk_levels=risk_level_entries, interiors=interior_entries, weathers=weather_entries)
     else:
         return admin_perms_denied()
     
@@ -357,7 +357,7 @@ def add_moon():
 def delete_moon_page():
     if admin:
         moon_list = execute_query("SELECT id, name FROM Moons")
-        return render_template("moonadmindelete.html", moons=moon_list)
+        return render_template("moons/moonadmindelete.html", moons=moon_list)
     else:
         return admin_perms_denied()
 
