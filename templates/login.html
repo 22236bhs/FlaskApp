@@ -1,6 +1,7 @@
 {% extends "layout.html" %}
 
 {% block header %}
+<h3><a href="/">* BACK</a></h3>
 <h1>Admin Login Page</h1>
 {% endblock %}
 
@@ -8,15 +9,15 @@
 <form action="/loginregister" method="post">
     <label>Username</label>
     <br>
-    <input type="text" name="username">
+    <input type="text" name="username" minlength="1" maxlength="15">
     <br>
     <br>
     <label>Password</label>
     <br>
-    <input type="password" name="password">
+    <input type="password" name="password" minlength="1" maxlength="20">
     <br>
     <br>
-    <input type="submit" value="GO!!!">
+    <input type="submit" value="Log in">
 </form>
 {% if login_error %}
 <h1>{{login_error}}</h1>

@@ -4,6 +4,8 @@ import sqlite3
 
 app = Flask(__name__)
 DATABASE = "LCdb.db"
+USERNAME_MAX_LENGTH = 16
+PASSWORD_MAX_LENGTH = 20
 
 admin = False
 login_error = ""
@@ -27,7 +29,7 @@ def home():
               ("Entities", "The entities you may encounter.", "entity"),
               ("Weathers", "The weathers a moon can have.", "weathers"),
               ("Interiors", "The interiors a moon's facility may have.", "interiors")]
-    return render_template("main.html", params=params, title="Home")
+    return render_template("main.html", params=params, title="Home", admin=admin)
 
 
 @app.route("/entity", methods=['GET', 'POST']) #Entity list
@@ -262,19 +264,26 @@ def loginregister():
     userdata = execute_query("SELECT id, username FROM AdminLogins")
     for user in userdata:
         if username == user[1]:
-            print("YUSnAme GOOD")
+            
             success = True
             userid = user[0]
             break
     if success:
         if check_password_hash(execute_query("SELECT passwordhash FROM AdminLogins WHERE id=?", (userid,))[0][0], password):
             admin = True
-            login_error = "YESS IT WORKED"
+            login_error = "Login Successful"
         else:
             login_error = "Incorrect Password"
     else:
-        login_error = "Incorrect Username"
+        login_error = "User not found"
     return app.redirect("/login")
+
+
+@app.route("/logout")
+def logout():
+    global admin
+    admin = False
+    return app.redirect("/")
     
 
 
