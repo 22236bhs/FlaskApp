@@ -62,7 +62,7 @@ def entities():
             "setting": data[i][2]
         } for i in range(len(data)) if data[i][2] == a + 1])
 
-    return render_template("entities/entitylist.html", params=params, title="Entity List", sort=sort_queries)
+    return render_template("entities/entitylist.html", params=params, title="Entity List", sort=sort_queries, admin=admin)
 
 
 @app.route("/entity/<int:id>") #Entity data page
@@ -367,6 +367,38 @@ def delete_moon(id):
     execute_query("DELETE FROM Moons WHERE id=?;", (id,))
     execute_query("DELETE FROM MoonWeathers WHERE moon_id=?", (id,))
     return app.redirect("/moons")
+
+
+@app.route("/admin/entity/add")
+def add_entity_page():
+    if admin:
+        setting_entries = execute_query("SELECT id, name FROM Setting;")
+        moon_entries = execute_query("SELECT id, name FROM Moons;")
+        return render_template("entities/entityadminadd.html", settings=setting_entries, moons=moon_entries)
+    else:
+        return admin_perms_denied()
+
+
+@app.route("/admin/addentity")
+def add_entity():
+    name = request.form.get("name")
+    danger_rating = request.form.get("danger_rating")
+    bestiary = request.form.get("bestiary")
+    setting = request.form.get("setting")
+    fav_moon = request.form.get("fav_moon")
+    sp_hp = request.form.get("sp_hp")
+    mp_hp = request.form.get("mp_hp")
+    invincible = request.form.get("invincible")
+    power = request.form.get("power")
+    max_spawned = request.form.get("max_spawned")
+    description = request.form.get("description")
+
+    if invincible:
+        sp_hp = -1
+        mp_hp = -1
+    
+    bestiary = bestiary.replace("\n", "\\n")
+    description = description.replace("\n", "\\n")
 
 
 @app.errorhandler(404)

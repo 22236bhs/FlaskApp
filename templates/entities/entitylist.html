@@ -3,6 +3,10 @@
 {% block header %}
 
 <h3><a href="/">* BACK</a></h3>
+{% if admin %}
+<h2><a href="/admin/entity/add">* Add Entity</a></h2>
+<h2><a href="/admin/entity/delete">* Remove Entity</a></h2>
+{% endif %}
 <h1>Welcome to the Entity List</h1>
 
 {% endblock %}
