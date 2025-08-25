@@ -1,9 +1,12 @@
 from flask import Flask, render_template, request
+from werkzeug.security import generate_password_hash, check_password_hash
 import sqlite3
 
 app = Flask(__name__)
 DATABASE = "LCdb.db"
 
+admin = False
+login_error = ""
 
 def execute_query(query, params=()):
     with sqlite3.connect(DATABASE) as db:
@@ -245,7 +248,34 @@ def interior(id):
 
 @app.route("/login")
 def login():
-    return render_template("login.html")
+
+    return render_template("login.html", login_error=login_error)
+
+
+@app.route("/loginregister", methods=['GET', 'POST'])
+def loginregister():
+    global login_error, admin
+    success = False
+    userid = 0
+    username = request.form.get("username")
+    password = request.form.get("password")
+    userdata = execute_query("SELECT id, username FROM AdminLogins")
+    for user in userdata:
+        if username == user[1]:
+            print("YUSnAme GOOD")
+            success = True
+            userid = user[0]
+            break
+    if success:
+        if check_password_hash(execute_query("SELECT passwordhash FROM AdminLogins WHERE id=?", (userid,))[0][0], password):
+            admin = True
+            login_error = "YESS IT WORKED"
+        else:
+            login_error = "Incorrect Password"
+    else:
+        login_error = "Incorrect Username"
+    return app.redirect("/login")
+    
 
 
 @app.errorhandler(404)
