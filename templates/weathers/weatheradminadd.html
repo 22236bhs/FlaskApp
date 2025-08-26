@@ -1,0 +1,25 @@
+{% extends "layout.html" %}
+
+{% block header %}
+<h3><a href="/weathers">* BACK</a></h3>
+<h1>Add a new Weather</h1>
+{% endblock %}
+
+{% block content %}
+<form action="/admin/addweather" method="post">
+    
+    <label class="form-label">Name</label>
+    <br><br>
+    <input type="text" name="name">
+    <br><br><br>
+
+    <label class="form-label">Description</label>
+    <br><br>
+    <textarea name="description" class="text-area-input"></textarea>
+    <br><br><br>
+
+    <input type="submit" value="Add Weather">
+    <br><br><br>
+
+</form>
+{% endblock %}

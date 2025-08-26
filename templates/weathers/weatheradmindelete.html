@@ -1,0 +1,12 @@
+{% extends "layout.html" %}
+
+{% block header %}
+<h3><a href="/weathers">* BACK</a></h3>
+<h1>Select a weather to delete</h1>
+{% endblock %}
+
+{% block content %}
+{% for weather in weathers %}
+<h1><a href="/admin/deleteweather/{{weather[0]}}">* {{weather[1]}}</a></h1>
+{% endfor %}
+{% endblock %}

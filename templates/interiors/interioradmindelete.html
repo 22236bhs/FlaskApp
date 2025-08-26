@@ -1,0 +1,12 @@
+{% extends "layout.html" %}
+
+{% block header %}
+<h3><a href="/interiors">* BACK</a></h3>
+<h1>Select an interior to delete</h1>
+{% endblock %}
+
+{% block content %}
+{% for interior in interiors %}
+<h1><a href="/admin/deleteinterior/{{interior[0]}}">* {{interior[1]}}</a></h1>
+{% endfor %}
+{% endblock %}

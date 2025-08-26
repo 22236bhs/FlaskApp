@@ -3,6 +3,10 @@
 {% block header %}
 
 <h3><a href="/">* BACK</a></h3>
+{% if admin %}
+<h2><a href="/admin/weathers/add">* Add Weather</a></h2>
+<h2><a href="/admin/weathers/delete">* Remove Weather</a></h2>
+{% endif %}
 <h1>Welcome to the Weather List</h1>
 
 {% endblock %}

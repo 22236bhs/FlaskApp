@@ -10,7 +10,7 @@
 {% block content %}
 
 <h2>Description:</h2>
-<p>{{params["description"]}}</p>
+<p class="descriptions">{{ params['description'] | replace('\n', '<br>' | safe)}}</p>
 
 <h2>Moons that can have this weather:</h2>
 {% for moon in params["moons"] %}

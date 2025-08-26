@@ -215,7 +215,7 @@ def weathers():
         "name": data[i][1]
     } for i in range(len(data))]
 
-    return render_template("weathers/weatherlist.html", params=params, title="Weather List")
+    return render_template("weathers/weatherlist.html", params=params, title="Weather List", admin=admin)
 
 
 @app.route("/weathers/<int:id>") #Weather data page
@@ -235,6 +235,10 @@ def weather(id):
         "description": data[1],
         "pictures": set_picture_list(data[2])
     }
+
+    if params["description"]:
+        params["description"] = params["description"].replace("\\n", "\n")
+
     return render_template("weathers/weather.html", params=params, title=params["name"])
 
 
@@ -249,7 +253,7 @@ def interiors():
         "name": data[i][1]
     } for i in range(len(data)) if data[i][1] != "N/A"]
 
-    return render_template("interiors/interiorlist.html", params=params, title="Interior List")
+    return render_template("interiors/interiorlist.html", params=params, title="Interior List", admin=admin)
 
 
 @app.route("/interiors/<int:id>") #Interior data page
@@ -264,6 +268,9 @@ def interior(id):
         "description": data[1],
         "pictures": set_picture_list(data[2])
     }
+
+    if params["description"]:
+        params["description"] = params["description"].replace("\\n", "\n")
 
     return render_template("interiors/interior.html", params=params, title=params['name'])
 
@@ -482,6 +489,85 @@ def delete_tool(id):
     if admin:
         execute_query("DELETE FROM Tools WHERE id=?", (id,))
         return app.redirect("/tools")
+    else:
+        return admin_perms_denied()
+
+
+@app.route("/admin/weathers/add")
+def add_weather_page():
+    if admin:
+        return render_template("weathers/weatheradminadd.html", title="Add Weather")
+    else:
+        return admin_perms_denied()
+
+
+@app.route("/admin/addweather", methods=["GET", "POST"])
+def add_weather():
+    if admin:
+        name = request.form.get("name")
+        description = request.form.get("description").replace("\n", "\\n")
+        execute_query('''
+                      INSERT INTO Weathers (name, description, pictures)
+                      VALUES (?, ?, ?)''', (name, description, "placeholder_image"))
+        
+        return app.redirect("/weathers")
+    else:
+        return admin_perms_denied()
+
+
+@app.route("/admin/weathers/delete")
+def delete_weather_page():
+    if admin:
+        weather_list = execute_query("SELECT id, name FROM Weathers;")
+        return render_template("weathers/weatheradmindelete.html", title="Delete Weather", weathers=weather_list)
+    else:
+        return admin_perms_denied()
+
+
+@app.route("/admin/deleteweather/<int:id>")
+def delete_weather(id):
+    if admin:
+        execute_query("DELETE FROM Weathers WHERE id=?", (id,))
+        return app.redirect("/weathers")
+    else:
+        return admin_perms_denied()
+
+
+@app.route("/admin/interiors/add")
+def add_interior_page():
+    if admin:
+        return render_template("interiors/interioradminadd.html", title="Add Interior")
+    else:
+        return admin_perms_denied()
+
+
+@app.route("/admin/addinterior", methods=["GET", "POST"])
+def add_interior():
+    if admin:
+        name = request.form.get("name")
+        description = request.form.get("description").replace("\n", "\\n")
+        execute_query('''
+                      INSERT INTO Interiors (name, description, pictures)
+                      VALUES (?, ?, ?)''', (name, description, "placeholder_image"))
+        return app.redirect("/interiors")
+    else:
+        return admin_perms_denied()
+
+
+@app.route("/admin/interiors/delete")
+def delete_interior_page():
+    if admin:
+        interior_list = execute_query("SELECT id, name FROM Interiors WHERE NOT id=1;")
+        return render_template("interiors/interioradmindelete.html", title="Delete Interior", interiors=interior_list)
+    else:
+        return admin_perms_denied()
+
+
+@app.route("/admin/deleteinterior/<int:id>")
+def delete_interior(id):
+    if admin:
+        execute_query("DELETE FROM Interiors WHERE id=?", (id,))
+        return app.redirect("/interiors")
     else:
         return admin_perms_denied()
 

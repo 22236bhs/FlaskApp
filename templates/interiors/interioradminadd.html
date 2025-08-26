@@ -1,0 +1,25 @@
+{% extends "layout.html" %}
+
+{% block header %}
+<h3><a href="/interiors">* BACK</a></h3>
+<h1>Add a new Interior</h1>
+{% endblock %}
+
+{% block content %}
+<form action="/admin/addinterior" method="post">
+    
+    <label class="form-label">Name</label>
+    <br><br>
+    <input type="text" name="name">
+    <br><br><br>
+
+    <label class="form-label">Description</label>
+    <br><br>
+    <textarea name="description" class="text-area-input"></textarea>
+    <br><br><br>
+
+    <input type="submit" value="Add Interior">
+    <br><br><br>
+
+</form>
+{% endblock %}
