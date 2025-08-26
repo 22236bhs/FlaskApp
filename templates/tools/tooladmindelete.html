@@ -1,0 +1,12 @@
+{% extends "layout.html" %}
+
+{% block header %}
+<h3><a href="/tools">* BACK</a></h3>
+<h1>Select a tool to delete</h1>
+{% endblock %}
+
+{% block content %}
+{% for tool in tools %}
+<h1><a href="/admin/deletetool/{{tool[0]}}">* {{tool[1]}}</a></h1>
+{% endfor %}
+{% endblock %}

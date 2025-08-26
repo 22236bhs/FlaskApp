@@ -10,12 +10,12 @@
 <form action="/loginregister" method="post">
     <label>Username</label>
     <br>
-    <input type="text" name="username" minlength="1" maxlength="15">
+    <input type="text" name="username" minlength="1" maxlength="{{username_max_length}}">
     <br>
     <br>
     <label>Password</label>
     <br>
-    <input type="password" name="password" minlength="1" maxlength="20">
+    <input type="password" name="password" minlength="1" maxlength="{{password_max_length}}">
     <br>
     <br>
     <input type="submit" value="Log in">

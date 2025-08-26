@@ -1,0 +1,42 @@
+{% extends "layout.html" %}
+
+{% block header %}
+<h3><a href="/tools">* BACK</a></h3>
+<h1>Add a new Tool</h1>
+{% endblock %}
+
+{% block content %}
+
+<form action="/admin/addtool" method="post">
+    
+    <label class="form-label">Name</label>
+    <br><br>
+    <input type="text" name="name">
+    <br><br><br>
+
+    <label class="form-label">Price</label>
+    <br><br>
+    <input type="number" name="price">
+    <br><br><br>
+
+    <label class="form-label">Description</label>
+    <br><br>
+    <textarea name="description" class="text-area-input"></textarea>
+    <br><br><br>
+
+    <label class="form-label">Upgrade</label>
+    <br><br>
+    <input type="checkbox" name="upgrade">
+    <label style="font-size: 125%;">True</label>
+    <br><br><br>
+
+    <label class="form-label">Weight</label>
+    <br><br>
+    <input type="number" name="weight">
+    <br><br><br>
+
+    <input type="submit" value="Add Tool">
+
+</form>
+
+{% endblock %}

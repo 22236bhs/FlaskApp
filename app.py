@@ -4,6 +4,7 @@ import sqlite3
 
 app = Flask(__name__)
 DATABASE = "LCdb.db"
+
 USERNAME_MAX_LENGTH = 16
 PASSWORD_MAX_LENGTH = 20
 
@@ -87,8 +88,10 @@ def entity(id):
         "description": data[9],
         "pictures": set_picture_list(data[10])
     }
-    params["bestiary"] = params["bestiary"].replace("\\n", "\n")
-    params["description"] = params["description"].replace("\\n", "\n")
+    if params["bestiary"]:
+        params["bestiary"] = params["bestiary"].replace("\\n", "\n")
+    if params["description"]:
+        params["description"] = params["description"].replace("\\n", "\n")
     return render_template("entities/entity.html", params=params, title=params["name"])
 
 
@@ -176,7 +179,7 @@ def tools():
             "price": data[i][3]
         } for i in range(len(data)) if data[i][2] == a])
 
-    return render_template("tools/toollist.html", params=params, title="Tool List", sort=sort_queries)
+    return render_template("tools/toollist.html", params=params, title="Tool List", sort=sort_queries, admin=admin)
 
 
 @app.route("/tools/<int:id>") #Tool data page
@@ -194,6 +197,9 @@ def tool(id):
         "weight": data[4],
         "pictures": set_picture_list(data[5])
     }
+
+    if params["description"]:
+        params["description"] = params["description"].replace("\\n", "\n")
     
     return render_template("tools/tool.html", params=params, title=params["name"])
 
@@ -267,7 +273,7 @@ def login():
     global login_message
     current_login_message = login_message
     login_message = ""
-    return render_template("login.html", login_message=current_login_message, admin=admin)
+    return render_template("login.html", login_message=current_login_message, admin=admin, username_max_length=USERNAME_MAX_LENGTH, password_max_length=PASSWORD_MAX_LENGTH, title="Login")
 
 
 @app.route("/loginregister", methods=['GET', 'POST'])
@@ -309,7 +315,7 @@ def add_moon_page():
         risk_level_entries = execute_query("SELECT id, name FROM RiskLevels;")
         interior_entries = execute_query("SELECT id, name FROM Interiors;")
         weather_entries = execute_query("SELECT id, name FROM Weathers;")
-        return render_template("moons/moonadminadd.html", risk_levels=risk_level_entries, interiors=interior_entries, weathers=weather_entries)
+        return render_template("moons/moonadminadd.html", risk_levels=risk_level_entries, interiors=interior_entries, weathers=weather_entries, title="Add Moon")
     else:
         return admin_perms_denied()
     
@@ -358,7 +364,7 @@ def add_moon():
 def delete_moon_page():
     if admin:
         moon_list = execute_query("SELECT id, name FROM Moons")
-        return render_template("moons/moonadmindelete.html", moons=moon_list)
+        return render_template("moons/moonadmindelete.html", moons=moon_list, title="Delete Moon")
     else:
         return admin_perms_denied()
 
@@ -378,7 +384,7 @@ def add_entity_page():
     if admin:
         setting_entries = execute_query("SELECT id, name FROM Setting;")
         moon_entries = execute_query("SELECT id, name FROM Moons;")
-        return render_template("entities/entityadminadd.html", settings=setting_entries, moons=moon_entries)
+        return render_template("entities/entityadminadd.html", settings=setting_entries, moons=moon_entries, title="Add Entity")
     else:
         return admin_perms_denied()
 
@@ -417,7 +423,7 @@ def add_entity():
 def delete_entity_page():
     if admin:
         entity_list = execute_query("SELECT id, name FROM Entities;")
-        return render_template("entities/entityadmindelete.html", entities=entity_list)
+        return render_template("entities/entityadmindelete.html", entities=entity_list, title="Delete Entity")
     else:
         return admin_perms_denied()
 
@@ -431,15 +437,63 @@ def delete_entity(id):
         return admin_perms_denied()
 
 
+@app.route("/admin/tools/add")
+def add_tool_page():
+    if admin:
+        return render_template("tools/tooladminadd.html", title="Add Tool")
+    else:
+        return admin_perms_denied()
+
+
+@app.route("/admin/addtool", methods=["GET", "POST"])
+def add_tool():
+    if admin:
+        name = request.form.get("name")
+        price = request.form.get("price")
+        description = request.form.get("description").replace("\n", "\\n")
+        upgrade = request.form.get("upgrade")
+        weight = request.form.get("weight")
+
+        if upgrade:
+            upgrade = 1
+        else:
+            upgrade = 0
+
+        execute_query('''
+                      INSERT INTO Tools (name, price, description, upgrade, weight, pictures)
+                      VALUES (?, ?, ?, ?, ?, ?)''', (name, price, description, upgrade, weight, "placeholder_image"))   
+
+        return app.redirect("/tools")
+    else:
+        return admin_perms_denied()
+
+
+@app.route("/admin/tools/delete")
+def delete_tool_page():
+    if admin:
+        tool_list = execute_query("SELECT id, name FROM Tools;")
+        return render_template("tools/tooladmindelete.html", title="Delete Tool", tools=tool_list)
+    else:
+        return admin_perms_denied()
+
+
+@app.route("/admin/deletetool/<int:id>")
+def delete_tool(id):
+    if admin:
+        execute_query("DELETE FROM Tools WHERE id=?", (id,))
+        return app.redirect("/tools")
+    else:
+        return admin_perms_denied()
+
 
 @app.errorhandler(404)
 def error404(e):
-    return render_template("error_page.html", error_code=404), 404
+    return render_template("error_page.html", error_code=404, title="404 Error"), 404
 
 
 @app.errorhandler(400)
 def error400(e):
-    return render_template("error_page.html", error_code=400), 400
+    return render_template("error_page.html", error_code=400, title="400 Error"), 400
 
 if __name__ == "__main__":
     app.run(debug=True)

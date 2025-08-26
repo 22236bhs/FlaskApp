@@ -25,7 +25,7 @@
 {% endif %}
 
 <h2>Description:</h2>
-<p>{{params["description"]}}</p>
+<p class="descriptions">{{ params['description'] | replace('\n', '<br>' | safe)}}</p>
 
 <div class="pictures-grid">
     {% for i in params['pictures'] %}
