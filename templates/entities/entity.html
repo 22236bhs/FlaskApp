@@ -29,7 +29,7 @@
 <h2>Bestiary: </h2>
 <p class="descriptions">{{ params['bestiary'] | replace('\n', '<br>' | safe)}}</p>
 <h2>My Description: </h2>
-<p>{{params['description']}}</p>
+<p class="descriptions">{{ params['description'] | replace('\n', '<br>' | safe)}}</p>
 <div class="pictures-grid">
     {% for i in params['pictures'] %}
     <div class="pictures">

@@ -1,4 +1,12 @@
 {% extends "layout.html" %}
 
 {% block header %}
+<h3><a href="/entity">* BACK</a></h3>
+<h1>Select a entity to delete</h1>
+{% endblock %}
+
+{% block content %}
+{% for entity in entities %}
+<h1><a href="/admin/deleteentity/{{entity[0]}}">* {{entity[1]}}</a></h1>
+{% endfor %}
 {% endblock %}

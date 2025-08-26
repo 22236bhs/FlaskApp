@@ -88,6 +88,7 @@ def entity(id):
         "pictures": set_picture_list(data[10])
     }
     params["bestiary"] = params["bestiary"].replace("\\n", "\n")
+    params["description"] = params["description"].replace("\\n", "\n")
     return render_template("entities/entity.html", params=params, title=params["name"])
 
 
@@ -364,9 +365,12 @@ def delete_moon_page():
 
 @app.route("/admin/deletemoon/<int:id>")
 def delete_moon(id):
-    execute_query("DELETE FROM Moons WHERE id=?;", (id,))
-    execute_query("DELETE FROM MoonWeathers WHERE moon_id=?", (id,))
-    return app.redirect("/moons")
+    if admin:
+        execute_query("DELETE FROM Moons WHERE id=?;", (id,))
+        execute_query("DELETE FROM MoonWeathers WHERE moon_id=?", (id,))
+        return app.redirect("/moons")
+    else:
+        return admin_perms_denied()
 
 
 @app.route("/admin/entity/add")
@@ -379,26 +383,53 @@ def add_entity_page():
         return admin_perms_denied()
 
 
-@app.route("/admin/addentity")
+@app.route("/admin/addentity", methods=["GET", "POST"])
 def add_entity():
-    name = request.form.get("name")
-    danger_rating = request.form.get("danger_rating")
-    bestiary = request.form.get("bestiary")
-    setting = request.form.get("setting")
-    fav_moon = request.form.get("fav_moon")
-    sp_hp = request.form.get("sp_hp")
-    mp_hp = request.form.get("mp_hp")
-    invincible = request.form.get("invincible")
-    power = request.form.get("power")
-    max_spawned = request.form.get("max_spawned")
-    description = request.form.get("description")
+    if admin:
+        name = request.form.get("name")
+        danger_rating = request.form.get("danger_rating")
+        bestiary = request.form.get("bestiary")
+        setting = request.form.get("setting")
+        fav_moon = request.form.get("fav_moon")
+        sp_hp = request.form.get("sp_hp")
+        mp_hp = request.form.get("mp_hp")
+        invincible = request.form.get("invincible")
+        power = request.form.get("power")
+        max_spawned = request.form.get("max_spawned")
+        description = request.form.get("description")
 
-    if invincible:
-        sp_hp = -1
-        mp_hp = -1
-    
-    bestiary = bestiary.replace("\n", "\\n")
-    description = description.replace("\n", "\\n")
+        if invincible:
+            sp_hp = -1
+            mp_hp = -1
+        
+        bestiary = bestiary.replace("\n", "\\n")
+        description = description.replace("\n", "\\n")
+
+        execute_query('''
+                      INSERT INTO Entities (name, danger, bestiary, setting, fav_moon, sp_hp, mp_hp, power, max_spawned, description, pictures)
+                      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)''', (name, danger_rating, bestiary, setting, fav_moon, sp_hp, mp_hp, power, max_spawned, description, "placeholder_image"))
+        return app.redirect("/entity")
+    else:
+        return admin_perms_denied()
+
+
+@app.route("/admin/entity/delete")
+def delete_entity_page():
+    if admin:
+        entity_list = execute_query("SELECT id, name FROM Entities;")
+        return render_template("entities/entityadmindelete.html", entities=entity_list)
+    else:
+        return admin_perms_denied()
+
+
+@app.route("/admin/deleteentity/<int:id>")
+def delete_entity(id):
+    if admin:
+        execute_query("DELETE FROM Entities WHERE id=?;", (id,))
+        return app.redirect("/entity")
+    else:
+        return admin_perms_denied()
+
 
 
 @app.errorhandler(404)
