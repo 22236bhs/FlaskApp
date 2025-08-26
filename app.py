@@ -290,6 +290,15 @@ def loginregister():
     userid = 0
     username = request.form.get("username")
     password = request.form.get("password")
+
+    if len(username) > USERNAME_MAX_LENGTH:
+        login_message = "Username too large"
+        return app.redirect("/login")
+    
+    if len(password) > PASSWORD_MAX_LENGTH:
+        login_message = "Password too large"
+        return app.redirect("/login")
+
     userdata = execute_query("SELECT id, username FROM AdminLogins")
     for user in userdata:
         if username == user[1]:
