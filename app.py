@@ -1,5 +1,5 @@
-from flask import Flask, render_template, request
-from werkzeug.security import generate_password_hash, check_password_hash
+from flask import Flask, render_template, request, abort
+from werkzeug.security import check_password_hash
 import sqlite3
 
 app = Flask(__name__)
@@ -11,6 +11,7 @@ PASSWORD_MAX_LENGTH = 20
 admin = False
 login_message = ""
 
+
 def execute_query(query, params=()):
     with sqlite3.connect(DATABASE) as db:
         return db.cursor().execute(query, params).fetchall()
@@ -21,23 +22,26 @@ def set_picture_list(picture_string):
         return picture_string.split(" ")
     else:
         return []
-    
+
 
 def admin_perms_denied():
     return render_template("adminpermsdenied.html")
 
 
-@app.route("/") #Home page for selection
+@app.route("/")  # Home page for selection
 def home():
     params = [("Moons", "The moons the autopilot can route to.", "moons"),
               ("Tools", "The items and upgrades you can buy or find.", "tools"),
               ("Entities", "The entities you may encounter.", "entity"),
               ("Weathers", "The weathers a moon can have.", "weathers"),
               ("Interiors", "The interiors a moon's facility may have.", "interiors")]
-    return render_template("main.html", params=params, title="Home", admin=admin)
+    return render_template("main.html",
+                           params=params,
+                           title="Home",
+                           admin=admin)
 
 
-@app.route("/entity", methods=['GET', 'POST']) #Entity list
+@app.route("/entity", methods=['GET', 'POST'])  # Entity list
 def entities():
     sort_queries = {
         "0": ("Alphabetical", "ORDER BY name"),
@@ -54,7 +58,7 @@ def entities():
     data = execute_query('''
                             SELECT id, name, setting
                             FROM Entities''' + " " + order + " " + sortdir + ";")
-    
+
     params = []
     for a in range(3):
         params.append([{
@@ -63,18 +67,22 @@ def entities():
             "setting": data[i][2]
         } for i in range(len(data)) if data[i][2] == a + 1])
 
-    return render_template("entities/entitylist.html", params=params, title="Entity List", sort=sort_queries, admin=admin)
+    return render_template("entities/entitylist.html",
+                           params=params, title="Entity List",
+                           sort=sort_queries, admin=admin)
 
 
-@app.route("/entity/<int:id>") #Entity data page
+@app.route("/entity/<int:id>")  # Entity data page
 def entity(id):
     data = execute_query('''
-                        SELECT Entities.name, danger, bestiary, Setting.name, Moons.name, sp_hp, mp_hp, power, max_spawned, Entities.description, Entities.pictures
+                        SELECT Entities.name, danger, bestiary, Setting.name,
+                        Moons.name, sp_hp, mp_hp, power, max_spawned,
+                        Entities.description, Entities.pictures
                         FROM Entities
                         JOIN Moons ON Entities.fav_moon = Moons.id
                         JOIN Setting ON Entities.setting = Setting.id
                         WHERE Entities.id = ?;''', (id,))[0]
-    
+
     params = {
         "name": data[0],
         "danger": data[1],
@@ -92,10 +100,13 @@ def entity(id):
         params["bestiary"] = params["bestiary"].replace("\\n", "\n")
     if params["description"]:
         params["description"] = params["description"].replace("\\n", "\n")
-    return render_template("entities/entity.html", params=params, title=params["name"])
+
+    return render_template("entities/entity.html",
+                           params=params,
+                           title=params["name"])
 
 
-@app.route("/moons") #Moon list
+@app.route("/moons")  # Moon list
 def moons():
     data = execute_query('''
                         SELECT id, name, price, tier
@@ -107,23 +118,28 @@ def moons():
             "name": data[i][1],
             "price": data[i][2]
         } for i in range(len(data)) if data[i][3] == a + 1])
-    
-    return render_template("moons/moonlist.html", params=params, title="Moon List", admin=admin)
+
+    return render_template("moons/moonlist.html",
+                           params=params,
+                           title="Moon List",
+                           admin=admin)
 
 
-@app.route("/moons/<int:id>") #Moon data page
+@app.route("/moons/<int:id>")  # Moon data page
 def moon(id):
     data = execute_query('''
-                        SELECT Moons.name, RiskLevels.name, price, Interiors.id, Interiors.name, max_indoor_power, max_outdoor_power, conditions, history, fauna, Moons.description, tier, Moons.pictures
+                        SELECT Moons.name, RiskLevels.name, price, Interiors.id,
+                        Interiors.name, max_indoor_power, max_outdoor_power,
+                        conditions, history, fauna, Moons.description, tier, Moons.pictures
                         FROM Moons
                         JOIN RiskLevels ON Moons.risk_level = RiskLevels.id
                         JOIN Interiors ON Moons.interior = Interiors.id
                         WHERE Moons.id = ?;''', (id,))[0]
-    
+
     weatherdata = execute_query('''
                                 SELECT id, name FROM Weathers WHERE id IN (
                                 SELECT weather_id FROM MoonWeathers WHERE moon_id = ?);''', (id,))
-    
+
     params = {
         "name": data[0],
         "risk_level": data[1],
@@ -151,7 +167,7 @@ def moon(id):
     return render_template("moons/moon.html", params=params, title=params["name"])
 
 
-@app.route("/tools", methods=['GET', 'POST']) #Tool list
+@app.route("/tools", methods=['GET', 'POST'])  # Tool list
 def tools():
     sort_queries = {
         "0": ("Default", ""),
@@ -166,11 +182,11 @@ def tools():
         order = sort_queries[sort][1]
     else:
         order = sort_queries["0"][1]
-    
+
     data = execute_query('''
                         SELECT id, name, upgrade, price
                         FROM Tools''' + " " + order + " " + sort_dir + ";")
-        
+
     params = []
     for a in range(2):
         params.append([{
@@ -182,7 +198,7 @@ def tools():
     return render_template("tools/toollist.html", params=params, title="Tool List", sort=sort_queries, admin=admin)
 
 
-@app.route("/tools/<int:id>") #Tool data page
+@app.route("/tools/<int:id>")  # Tool data page
 def tool(id):
     data = execute_query('''
                         SELECT name, price, description, upgrade, weight, pictures
@@ -200,16 +216,16 @@ def tool(id):
 
     if params["description"]:
         params["description"] = params["description"].replace("\\n", "\n")
-    
+
     return render_template("tools/tool.html", params=params, title=params["name"])
 
 
-@app.route("/weathers") #Weather list
+@app.route("/weathers")  # Weather list
 def weathers():
     data = execute_query('''
                         SELECT id, name
                         FROM Weathers;''')
-    
+
     params = [{
         "id": data[i][0],
         "name": data[i][1]
@@ -218,17 +234,17 @@ def weathers():
     return render_template("weathers/weatherlist.html", params=params, title="Weather List", admin=admin)
 
 
-@app.route("/weathers/<int:id>") #Weather data page
+@app.route("/weathers/<int:id>")  # Weather data page
 def weather(id):
     data = execute_query('''
                         SELECT name, description, pictures
                         FROM Weathers
                         WHERE id = ?;''', (id,))[0]
-    
+
     moondata = execute_query('''
                             SELECT id, name FROM Moons WHERE id IN (
                             SELECT moon_id FROM MoonWeathers WHERE weather_id = ?);''', (id,))
-    
+
     params = {
         "name": data[0],
         "moons": moondata,
@@ -239,10 +255,12 @@ def weather(id):
     if params["description"]:
         params["description"] = params["description"].replace("\\n", "\n")
 
-    return render_template("weathers/weather.html", params=params, title=params["name"])
+    return render_template("weathers/weather.html",
+                           params=params,
+                           title=params["name"])
 
 
-@app.route("/interiors") #Interior list
+@app.route("/interiors")  # Interior list
 def interiors():
     data = execute_query('''
                         SELECT id, name
@@ -253,10 +271,13 @@ def interiors():
         "name": data[i][1]
     } for i in range(len(data)) if data[i][1] != "N/A"]
 
-    return render_template("interiors/interiorlist.html", params=params, title="Interior List", admin=admin)
+    return render_template("interiors/interiorlist.html",
+                           params=params,
+                           title="Interior List",
+                           admin=admin)
 
 
-@app.route("/interiors/<int:id>") #Interior data page
+@app.route("/interiors/<int:id>")  # Interior data page
 def interior(id):
     data = execute_query('''
                         SELECT name, description, pictures
@@ -294,7 +315,7 @@ def loginregister():
     if len(username) > USERNAME_MAX_LENGTH:
         login_message = "Username too large"
         return app.redirect("/login")
-    
+
     if len(password) > PASSWORD_MAX_LENGTH:
         login_message = "Password too large"
         return app.redirect("/login")
@@ -302,7 +323,7 @@ def loginregister():
     userdata = execute_query("SELECT id, username FROM AdminLogins")
     for user in userdata:
         if username == user[1]:
-            
+
             success = True
             userid = user[0]
             break
@@ -589,6 +610,7 @@ def error404(e):
 @app.errorhandler(400)
 def error400(e):
     return render_template("error_page.html", error_code=400, title="400 Error"), 400
+
 
 if __name__ == "__main__":
     app.run(debug=True)
