@@ -6,9 +6,6 @@ import app_content
 app = Flask(__name__)
 DATABASE = "LCdb.db"
 
-USERNAME_MAX_LENGTH = 16
-PASSWORD_MAX_LENGTH = 20
-
 admin = False
 login_message = ""
 
@@ -156,10 +153,12 @@ def moon(id):
                         FROM Moons
                         JOIN RiskLevels ON Moons.risk_level = RiskLevels.id
                         JOIN Interiors ON Moons.interior = Interiors.id
-                        WHERE Moons.id = ?;''', (id,))[0]
+                        WHERE Moons.id = ?;''', (id,))
 
     if not data:
         abort(404)
+
+    data = data[0]
 
     weatherdata = execute_query('''
                                 SELECT id, name FROM Weathers WHERE id IN (
@@ -235,10 +234,12 @@ def tool(id):
     data = execute_query('''
                         SELECT name, price, description, upgrade, weight, pictures
                         FROM Tools
-                        WHERE id = ?;''', (id,))[0]
+                        WHERE id = ?;''', (id,))
 
     if not data:
         abort(404)
+
+    data = data[0]
 
     params = {
         "name": data[0],
@@ -279,10 +280,12 @@ def weather(id):
     data = execute_query('''
                         SELECT name, description, pictures
                         FROM Weathers
-                        WHERE id = ?;''', (id,))[0]
+                        WHERE id = ?;''', (id,))
 
     if not data:
         abort(404)
+
+    data = data[0]
 
     moondata = execute_query('''
                             SELECT id, name FROM Moons WHERE id IN (
@@ -325,10 +328,12 @@ def interior(id):
     data = execute_query('''
                         SELECT name, description, pictures
                         FROM Interiors
-                        WHERE id = ?;''', (id,))[0]
+                        WHERE id = ?;''', (id,))
 
     if not data:
         abort(404)
+
+    data = data[0]
 
     params = {
         "name": data[0],
@@ -352,8 +357,8 @@ def login():
     return render_template("login.html",
                            login_message=current_login_message,
                            admin=admin,
-                           username_max_length=USERNAME_MAX_LENGTH,
-                           password_max_length=PASSWORD_MAX_LENGTH,
+                           username_max_length=app_content.username_max_length,
+                           password_max_length=app_content.password_max_length,
                            title=get_title("/login"))
 
 
@@ -365,11 +370,11 @@ def loginregister():
     username = request.form.get("username")
     password = request.form.get("password")
 
-    if len(username) > USERNAME_MAX_LENGTH:
+    if len(username) > app_content.username_max_length:
         login_message = app_content.username_too_large_message
         return app.redirect("/login")
 
-    if len(password) > PASSWORD_MAX_LENGTH:
+    if len(password) > app_content.password_max_length:
         login_message = app_content.password_too_large_message
         return app.redirect("/login")
 
