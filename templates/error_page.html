@@ -1,1 +1,10 @@
-<h1>ERROR: {{error_code}}</h1>
+{% extends "layout.html" %}
+
+{% block header %}
+<h1>ERROR</h1>
+<h2>{{error}}</h2>
+{% endblock %}
+
+{% block content %}
+<h2><a href="/">* Return to Home Page</a></h1>
+{% endblock %}

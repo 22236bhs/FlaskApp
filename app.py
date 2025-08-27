@@ -1,6 +1,7 @@
 from flask import Flask, render_template, request, abort
 from werkzeug.security import check_password_hash
 import sqlite3
+import app_content
 
 app = Flask(__name__)
 DATABASE = "LCdb.db"
@@ -13,11 +14,13 @@ login_message = ""
 
 
 def execute_query(query, params=()):
+    '''Executes a query in the database based on parameters'''
     with sqlite3.connect(DATABASE) as db:
         return db.cursor().execute(query, params).fetchall()
 
 
 def set_picture_list(picture_string):
+    '''Formats the picture string into list'''
     if picture_string:
         return picture_string.split(" ")
     else:
@@ -25,19 +28,33 @@ def set_picture_list(picture_string):
 
 
 def admin_perms_denied():
+    '''Redirects the user to a page that denies admin access'''
     return render_template("adminpermsdenied.html")
+
+
+def get_title(route):
+    return execute_query('''
+                         SELECT title
+                         FROM PageTitles
+                         WHERE route=?''', (route,))[0][0]
+
+
+def push_error(number, code):
+    return render_template("error_page.html",
+                           error_code=number,
+                           title=f"{number} Error",
+                           error=code), number
 
 
 @app.route("/")  # Home page for selection
 def home():
-    params = [("Moons", "The moons the autopilot can route to.", "moons"),
-              ("Tools", "The items and upgrades you can buy or find.", "tools"),
-              ("Entities", "The entities you may encounter.", "entity"),
-              ("Weathers", "The weathers a moon can have.", "weathers"),
-              ("Interiors", "The interiors a moon's facility may have.", "interiors")]
+    params = execute_query('''
+                           SELECT display_name, description, link
+                           FROM HomePageLinks;''')
+
     return render_template("main.html",
                            params=params,
-                           title="Home",
+                           title=get_title("/"),
                            admin=admin)
 
 
@@ -58,7 +75,6 @@ def entities():
     data = execute_query('''
                             SELECT id, name, setting
                             FROM Entities''' + " " + order + " " + sortdir + ";")
-
     params = []
     for a in range(3):
         params.append([{
@@ -68,7 +84,8 @@ def entities():
         } for i in range(len(data)) if data[i][2] == a + 1])
 
     return render_template("entities/entitylist.html",
-                           params=params, title="Entity List",
+                           params=params,
+                           title=get_title("/entity"),
                            sort=sort_queries, admin=admin)
 
 
@@ -81,7 +98,11 @@ def entity(id):
                         FROM Entities
                         JOIN Moons ON Entities.fav_moon = Moons.id
                         JOIN Setting ON Entities.setting = Setting.id
-                        WHERE Entities.id = ?;''', (id,))[0]
+                        WHERE Entities.id = ?;''', (id,))
+    if not data:
+        abort(404)
+
+    data = data[0]
 
     params = {
         "name": data[0],
@@ -96,6 +117,7 @@ def entity(id):
         "description": data[9],
         "pictures": set_picture_list(data[10])
     }
+
     if params["bestiary"]:
         params["bestiary"] = params["bestiary"].replace("\\n", "\n")
     if params["description"]:
@@ -121,7 +143,7 @@ def moons():
 
     return render_template("moons/moonlist.html",
                            params=params,
-                           title="Moon List",
+                           title=get_title("/moons"),
                            admin=admin)
 
 
@@ -135,6 +157,9 @@ def moon(id):
                         JOIN RiskLevels ON Moons.risk_level = RiskLevels.id
                         JOIN Interiors ON Moons.interior = Interiors.id
                         WHERE Moons.id = ?;''', (id,))[0]
+
+    if not data:
+        abort(404)
 
     weatherdata = execute_query('''
                                 SELECT id, name FROM Weathers WHERE id IN (
@@ -155,6 +180,7 @@ def moon(id):
         "pictures": set_picture_list(data[12]),
         "weathers": weatherdata
     }
+
     if params["conditions"]:
         params["conditions"] = params["conditions"].replace("\\n", "\n")
     if params["history"]:
@@ -164,7 +190,9 @@ def moon(id):
     if params["description"]:
         params["description"] = params["description"].replace("\\n", "\n")
 
-    return render_template("moons/moon.html", params=params, title=params["name"])
+    return render_template("moons/moon.html",
+                           params=params,
+                           title=params["name"])
 
 
 @app.route("/tools", methods=['GET', 'POST'])  # Tool list
@@ -195,7 +223,11 @@ def tools():
             "price": data[i][3]
         } for i in range(len(data)) if data[i][2] == a])
 
-    return render_template("tools/toollist.html", params=params, title="Tool List", sort=sort_queries, admin=admin)
+    return render_template("tools/toollist.html",
+                           params=params,
+                           title=get_title("/tools"),
+                           sort=sort_queries,
+                           admin=admin)
 
 
 @app.route("/tools/<int:id>")  # Tool data page
@@ -204,6 +236,9 @@ def tool(id):
                         SELECT name, price, description, upgrade, weight, pictures
                         FROM Tools
                         WHERE id = ?;''', (id,))[0]
+
+    if not data:
+        abort(404)
 
     params = {
         "name": data[0],
@@ -217,7 +252,9 @@ def tool(id):
     if params["description"]:
         params["description"] = params["description"].replace("\\n", "\n")
 
-    return render_template("tools/tool.html", params=params, title=params["name"])
+    return render_template("tools/tool.html",
+                           params=params,
+                           title=params["name"])
 
 
 @app.route("/weathers")  # Weather list
@@ -231,7 +268,10 @@ def weathers():
         "name": data[i][1]
     } for i in range(len(data))]
 
-    return render_template("weathers/weatherlist.html", params=params, title="Weather List", admin=admin)
+    return render_template("weathers/weatherlist.html",
+                           params=params,
+                           title=get_title("/weathers"),
+                           admin=admin)
 
 
 @app.route("/weathers/<int:id>")  # Weather data page
@@ -241,9 +281,12 @@ def weather(id):
                         FROM Weathers
                         WHERE id = ?;''', (id,))[0]
 
+    if not data:
+        abort(404)
+
     moondata = execute_query('''
                             SELECT id, name FROM Moons WHERE id IN (
-                            SELECT moon_id FROM MoonWeathers WHERE weather_id = ?);''', (id,))
+                            SELECT moon_id FROM MoonWeathers WHERE weather_id=?);''', (id,))
 
     params = {
         "name": data[0],
@@ -273,7 +316,7 @@ def interiors():
 
     return render_template("interiors/interiorlist.html",
                            params=params,
-                           title="Interior List",
+                           title=get_title("/interiors"),
                            admin=admin)
 
 
@@ -284,6 +327,9 @@ def interior(id):
                         FROM Interiors
                         WHERE id = ?;''', (id,))[0]
 
+    if not data:
+        abort(404)
+
     params = {
         "name": data[0],
         "description": data[1],
@@ -293,18 +339,25 @@ def interior(id):
     if params["description"]:
         params["description"] = params["description"].replace("\\n", "\n")
 
-    return render_template("interiors/interior.html", params=params, title=params['name'])
+    return render_template("interiors/interior.html",
+                           params=params,
+                           title=params['name'])
 
 
-@app.route("/login")
+@app.route("/login")  # Page for the admin login
 def login():
     global login_message
     current_login_message = login_message
     login_message = ""
-    return render_template("login.html", login_message=current_login_message, admin=admin, username_max_length=USERNAME_MAX_LENGTH, password_max_length=PASSWORD_MAX_LENGTH, title="Login")
+    return render_template("login.html",
+                           login_message=current_login_message,
+                           admin=admin,
+                           username_max_length=USERNAME_MAX_LENGTH,
+                           password_max_length=PASSWORD_MAX_LENGTH,
+                           title=get_title("/login"))
 
 
-@app.route("/loginregister", methods=['GET', 'POST'])
+@app.route("/loginregister", methods=['GET', 'POST'])  # Register the inputted username and password
 def loginregister():
     global login_message, admin
     success = False
@@ -313,11 +366,11 @@ def loginregister():
     password = request.form.get("password")
 
     if len(username) > USERNAME_MAX_LENGTH:
-        login_message = "Username too large"
+        login_message = app_content.username_too_large_message
         return app.redirect("/login")
 
     if len(password) > PASSWORD_MAX_LENGTH:
-        login_message = "Password too large"
+        login_message = app_content.password_too_large_message
         return app.redirect("/login")
 
     userdata = execute_query("SELECT id, username FROM AdminLogins")
@@ -329,35 +382,40 @@ def loginregister():
             break
     if success:
         success = False
-        if check_password_hash(execute_query("SELECT passwordhash FROM AdminLogins WHERE id=?", (userid,))[0][0], password):
+        if check_password_hash(execute_query("SELECT passwordhash FROM AdminLogins WHERE id=?",
+                                             (userid,))[0][0], password):
             admin = True
-            login_message = "Login Successful"
+            login_message = app_content.login_success_message
             success = True
 
     if not success:
-        login_message = "Invalid Username or Password"
+        login_message = app_content.login_failure_message
     return app.redirect("/login")
 
 
-@app.route("/logout")
+@app.route("/logout")  # Log the user out
 def logout():
     global admin
     admin = False
     return app.redirect("/")
-    
 
-@app.route("/admin/moons/add")
+
+@app.route("/admin/moons/add")  # Page to add details for a new moon
 def add_moon_page():
     if admin:
         risk_level_entries = execute_query("SELECT id, name FROM RiskLevels;")
         interior_entries = execute_query("SELECT id, name FROM Interiors;")
         weather_entries = execute_query("SELECT id, name FROM Weathers;")
-        return render_template("moons/moonadminadd.html", risk_levels=risk_level_entries, interiors=interior_entries, weathers=weather_entries, title="Add Moon")
+        return render_template("moons/moonadminadd.html",
+                               risk_levels=risk_level_entries,
+                               interiors=interior_entries,
+                               weathers=weather_entries,
+                               title=get_title("/admin/moons/add"))
     else:
         return admin_perms_denied()
-    
 
-@app.route("/admin/addmoon", methods=['GET', 'POST'])
+
+@app.route("/admin/addmoon", methods=['GET', 'POST'])  # Add moon to database
 def add_moon():
     if admin:
         name = request.form.get("name")
@@ -378,35 +436,42 @@ def add_moon():
 
         weather_entries = execute_query("SELECT id FROM Weathers;")
         weather_list = []
+
         for i in range(len(weather_entries)):
             if request.form.get("weather" + str(weather_entries[i][0])):
                 weather_list.append(weather_entries[i][0])
-        
-        
+
         execute_query(
             '''
-            INSERT INTO Moons (name, risk_level, price, interior, max_indoor_power, max_outdoor_power, conditions, history, fauna, description, tier, pictures)
+            INSERT INTO Moons (name, risk_level, price, interior, max_indoor_power,
+            max_outdoor_power, conditions, history, fauna, description, tier, pictures)
             VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)''',
-            (name, risk_level, price, moon_interior, max_indoor_power, max_outdoor_power, conditions, history, fauna, description, tier, "placeholder_image")
+            (name, risk_level, price, moon_interior, max_indoor_power, max_outdoor_power,
+             conditions, history, fauna, description, tier, "placeholder_image")
         )
         moon_id = len(execute_query("SELECT id FROM Moons;"))
         for i in weather_list:
-            execute_query("INSERT INTO MoonWeathers (moon_id, weather_id) VALUES (?, ?)", (moon_id, i))
+            execute_query('''
+                          INSERT INTO MoonWeathers (moon_id, weather_id)
+                          VALUES (?, ?)''',
+                          (moon_id, i))
         return app.redirect("/moons")
     else:
         return admin_perms_denied()
 
 
-@app.route("/admin/moons/delete")
+@app.route("/admin/moons/delete")  # Page to select a moon to delete
 def delete_moon_page():
     if admin:
         moon_list = execute_query("SELECT id, name FROM Moons")
-        return render_template("moons/moonadmindelete.html", moons=moon_list, title="Delete Moon")
+        return render_template("moons/moonadmindelete.html",
+                               moons=moon_list,
+                               title=get_title("/admin/moons/delete"))
     else:
         return admin_perms_denied()
 
 
-@app.route("/admin/deletemoon/<int:id>")
+@app.route("/admin/deletemoon/<int:id>")  # Delete the selected moon
 def delete_moon(id):
     if admin:
         execute_query("DELETE FROM Moons WHERE id=?;", (id,))
@@ -416,17 +481,20 @@ def delete_moon(id):
         return admin_perms_denied()
 
 
-@app.route("/admin/entity/add")
+@app.route("/admin/entity/add")  # Page to add details for a new entity
 def add_entity_page():
     if admin:
         setting_entries = execute_query("SELECT id, name FROM Setting;")
         moon_entries = execute_query("SELECT id, name FROM Moons;")
-        return render_template("entities/entityadminadd.html", settings=setting_entries, moons=moon_entries, title="Add Entity")
+        return render_template("entities/entityadminadd.html",
+                               settings=setting_entries,
+                               moons=moon_entries,
+                               title=get_title("/admin/entity/add"))
     else:
         return admin_perms_denied()
 
 
-@app.route("/admin/addentity", methods=["GET", "POST"])
+@app.route("/admin/addentity", methods=["GET", "POST"])  # Add entity to database
 def add_entity():
     if admin:
         name = request.form.get("name")
@@ -444,28 +512,33 @@ def add_entity():
         if invincible:
             sp_hp = -1
             mp_hp = -1
-        
+
         bestiary = bestiary.replace("\n", "\\n")
         description = description.replace("\n", "\\n")
 
         execute_query('''
-                      INSERT INTO Entities (name, danger, bestiary, setting, fav_moon, sp_hp, mp_hp, power, max_spawned, description, pictures)
-                      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)''', (name, danger_rating, bestiary, setting, fav_moon, sp_hp, mp_hp, power, max_spawned, description, "placeholder_image"))
+                      INSERT INTO Entities (name, danger, bestiary, setting,
+                      fav_moon, sp_hp, mp_hp, power, max_spawned, description, pictures)
+                      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)''',
+                      (name, danger_rating, bestiary, setting, fav_moon, sp_hp,
+                       mp_hp, power, max_spawned, description, "placeholder_image"))
         return app.redirect("/entity")
     else:
         return admin_perms_denied()
 
 
-@app.route("/admin/entity/delete")
+@app.route("/admin/entity/delete")  # Page to select an entity to delete
 def delete_entity_page():
     if admin:
         entity_list = execute_query("SELECT id, name FROM Entities;")
-        return render_template("entities/entityadmindelete.html", entities=entity_list, title="Delete Entity")
+        return render_template("entities/entityadmindelete.html",
+                               entities=entity_list,
+                               title=get_title("/admin/entity/delete"))
     else:
         return admin_perms_denied()
 
 
-@app.route("/admin/deleteentity/<int:id>")
+@app.route("/admin/deleteentity/<int:id>")  # Delete selected entity
 def delete_entity(id):
     if admin:
         execute_query("DELETE FROM Entities WHERE id=?;", (id,))
@@ -474,15 +547,16 @@ def delete_entity(id):
         return admin_perms_denied()
 
 
-@app.route("/admin/tools/add")
+@app.route("/admin/tools/add")  # Page to add details for a new tool
 def add_tool_page():
     if admin:
-        return render_template("tools/tooladminadd.html", title="Add Tool")
+        return render_template("tools/tooladminadd.html",
+                               title=get_title("/admin/tools/add"))
     else:
         return admin_perms_denied()
 
 
-@app.route("/admin/addtool", methods=["GET", "POST"])
+@app.route("/admin/addtool", methods=["GET", "POST"])  # Add tool to database
 def add_tool():
     if admin:
         name = request.form.get("name")
@@ -497,24 +571,28 @@ def add_tool():
             upgrade = 0
 
         execute_query('''
-                      INSERT INTO Tools (name, price, description, upgrade, weight, pictures)
-                      VALUES (?, ?, ?, ?, ?, ?)''', (name, price, description, upgrade, weight, "placeholder_image"))   
+                      INSERT INTO Tools
+                      (name, price, description, upgrade, weight, pictures)
+                      VALUES (?, ?, ?, ?, ?, ?)''',
+                      (name, price, description, upgrade, weight, "placeholder_image"))
 
         return app.redirect("/tools")
     else:
         return admin_perms_denied()
 
 
-@app.route("/admin/tools/delete")
+@app.route("/admin/tools/delete")  # Page to select a tool to delete
 def delete_tool_page():
     if admin:
         tool_list = execute_query("SELECT id, name FROM Tools;")
-        return render_template("tools/tooladmindelete.html", title="Delete Tool", tools=tool_list)
+        return render_template("tools/tooladmindelete.html",
+                               title=get_title("/admin/tools/delete"),
+                               tools=tool_list)
     else:
         return admin_perms_denied()
 
 
-@app.route("/admin/deletetool/<int:id>")
+@app.route("/admin/deletetool/<int:id>")  # Delete selected tool
 def delete_tool(id):
     if admin:
         execute_query("DELETE FROM Tools WHERE id=?", (id,))
@@ -523,38 +601,42 @@ def delete_tool(id):
         return admin_perms_denied()
 
 
-@app.route("/admin/weathers/add")
+@app.route("/admin/weathers/add")  # Page to add details for a new weather
 def add_weather_page():
     if admin:
-        return render_template("weathers/weatheradminadd.html", title="Add Weather")
+        return render_template("weathers/weatheradminadd.html",
+                               title=get_title("/admin/weathers/add"))
     else:
         return admin_perms_denied()
 
 
-@app.route("/admin/addweather", methods=["GET", "POST"])
+@app.route("/admin/addweather", methods=["GET", "POST"])  # Add weather to database
 def add_weather():
     if admin:
         name = request.form.get("name")
         description = request.form.get("description").replace("\n", "\\n")
         execute_query('''
                       INSERT INTO Weathers (name, description, pictures)
-                      VALUES (?, ?, ?)''', (name, description, "placeholder_image"))
-        
+                      VALUES (?, ?, ?)''',
+                      (name, description, "placeholder_image"))
+
         return app.redirect("/weathers")
     else:
         return admin_perms_denied()
 
 
-@app.route("/admin/weathers/delete")
+@app.route("/admin/weathers/delete")  # Page to select a weather to delete
 def delete_weather_page():
     if admin:
         weather_list = execute_query("SELECT id, name FROM Weathers;")
-        return render_template("weathers/weatheradmindelete.html", title="Delete Weather", weathers=weather_list)
+        return render_template("weathers/weatheradmindelete.html",
+                               title=get_title("/admin/weathers/delete"),
+                               weathers=weather_list)
     else:
         return admin_perms_denied()
 
 
-@app.route("/admin/deleteweather/<int:id>")
+@app.route("/admin/deleteweather/<int:id>")  # Delete selected weather
 def delete_weather(id):
     if admin:
         execute_query("DELETE FROM Weathers WHERE id=?", (id,))
@@ -563,37 +645,41 @@ def delete_weather(id):
         return admin_perms_denied()
 
 
-@app.route("/admin/interiors/add")
+@app.route("/admin/interiors/add")  # Page to add details for a new interior
 def add_interior_page():
     if admin:
-        return render_template("interiors/interioradminadd.html", title="Add Interior")
+        return render_template("interiors/interioradminadd.html",
+                               title=get_title("/admin/interiors/add"))
     else:
         return admin_perms_denied()
 
 
-@app.route("/admin/addinterior", methods=["GET", "POST"])
+@app.route("/admin/addinterior", methods=["GET", "POST"])  # Add interior to database
 def add_interior():
     if admin:
         name = request.form.get("name")
         description = request.form.get("description").replace("\n", "\\n")
         execute_query('''
                       INSERT INTO Interiors (name, description, pictures)
-                      VALUES (?, ?, ?)''', (name, description, "placeholder_image"))
+                      VALUES (?, ?, ?)''',
+                      (name, description, "placeholder_image"))
         return app.redirect("/interiors")
     else:
         return admin_perms_denied()
 
 
-@app.route("/admin/interiors/delete")
+@app.route("/admin/interiors/delete")  # Page to select an interior to delete
 def delete_interior_page():
     if admin:
         interior_list = execute_query("SELECT id, name FROM Interiors WHERE NOT id=1;")
-        return render_template("interiors/interioradmindelete.html", title="Delete Interior", interiors=interior_list)
+        return render_template("interiors/interioradmindelete.html",
+                               title=get_title("/admin/interiors/delete"),
+                               interiors=interior_list)
     else:
         return admin_perms_denied()
 
 
-@app.route("/admin/deleteinterior/<int:id>")
+@app.route("/admin/deleteinterior/<int:id>")  # Delete selected interior
 def delete_interior(id):
     if admin:
         execute_query("DELETE FROM Interiors WHERE id=?", (id,))
@@ -602,14 +688,14 @@ def delete_interior(id):
         return admin_perms_denied()
 
 
-@app.errorhandler(404)
+@app.errorhandler(404)  # Page for 404 errors
 def error404(e):
-    return render_template("error_page.html", error_code=404, title="404 Error"), 404
+    return push_error(404, e)
 
 
-@app.errorhandler(400)
-def error400(e):
-    return render_template("error_page.html", error_code=400, title="400 Error"), 400
+@app.errorhandler(500)  # Page for 500 errors
+def error500(e):
+    return push_error(500, e)
 
 
 if __name__ == "__main__":
