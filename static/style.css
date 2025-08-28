@@ -60,3 +60,7 @@ input{
 .text-area-input{
     font-size: 130%;
 }
+
+div{
+    width: auto;
+}

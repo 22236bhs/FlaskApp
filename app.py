@@ -372,6 +372,14 @@ def loginregister():
     username = request.form.get("username")
     password = request.form.get("password")
 
+    if not username:
+        login_message = app_content.login_failure_message
+        return app.redirect("/login")
+
+    if not password:
+        login_message = app_content.login_failure_message
+        return app.redirect("/login")
+
     if len(username) > app_content.username_max_length:
         login_message = app_content.username_too_large_message
         return app.redirect("/login")
