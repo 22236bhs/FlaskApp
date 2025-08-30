@@ -12,14 +12,14 @@
 {% block content %}
 
 {% for param in params %}
-
+<div class="home-page-link">
     <a href="{{param[2]}}">
         <div class="link">
-        <h2 style="width: 10%;" class="link">{{param[0]}}</h2>
-        <h3 style="width: 20%;" class="link">{{param[1]}}</h3>
+        <h2 class="link">{{param[0]}}</h2>
+        <h3 class="link">{{param[1]}}</h3>
         </div>
     </a>
-
+</div>
 {% endfor %}
 
 {% endblock %}

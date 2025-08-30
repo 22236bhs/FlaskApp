@@ -1,7 +1,7 @@
 from flask import Flask, render_template, request, abort
 from werkzeug.security import check_password_hash
 import sqlite3
-import app_content
+import code_params
 
 app = Flask(__name__)
 DATABASE = "LCdb.db"
@@ -91,7 +91,7 @@ def entity(id):
     data = execute_query('''
                         SELECT Entities.name, danger, bestiary, Setting.name,
                         Moons.name, sp_hp, mp_hp, power, max_spawned,
-                        Entities.description, Entities.pictures
+                        Entities.description, Entities.pictures, Moons.id
                         FROM Entities
                         JOIN Moons ON Entities.fav_moon = Moons.id
                         JOIN Setting ON Entities.setting = Setting.id
@@ -112,7 +112,8 @@ def entity(id):
         "power": data[7],
         "max_spawned": data[8],
         "description": data[9],
-        "pictures": set_picture_list(data[10])
+        "pictures": set_picture_list(data[10]),
+        "fav_moon_id": data[11]
     }
 
     if params["bestiary"]:
@@ -141,7 +142,8 @@ def moons():
     return render_template("moons/moonlist.html",
                            params=params,
                            title=get_title("/moons"),
-                           admin=admin)
+                           admin=admin,
+                           moon_tiers=code_params.moon_tiers)
 
 
 @app.route("/moons/<int:id>")  # Moon data page
@@ -359,8 +361,8 @@ def login():
     return render_template("login.html",
                            login_message=current_login_message,
                            admin=admin,
-                           username_max_length=app_content.username_max_length,
-                           password_max_length=app_content.password_max_length,
+                           username_max_length=code_params.username_max_length,
+                           password_max_length=code_params.password_max_length,
                            title=get_title("/login"))
 
 
@@ -373,19 +375,19 @@ def loginregister():
     password = request.form.get("password")
 
     if not username:
-        login_message = app_content.login_failure_message
+        login_message = code_params.login_failure_message
         return app.redirect("/login")
 
     if not password:
-        login_message = app_content.login_failure_message
+        login_message = code_params.login_failure_message
         return app.redirect("/login")
 
-    if len(username) > app_content.username_max_length:
-        login_message = app_content.username_too_large_message
+    if len(username) > code_params.username_max_length:
+        login_message = code_params.username_too_large_message
         return app.redirect("/login")
 
-    if len(password) > app_content.password_max_length:
-        login_message = app_content.password_too_large_message
+    if len(password) > code_params.password_max_length:
+        login_message = code_params.password_too_large_message
         return app.redirect("/login")
 
     userdata = execute_query("SELECT id, username FROM AdminLogins")
@@ -400,11 +402,11 @@ def loginregister():
         if check_password_hash(execute_query("SELECT passwordhash FROM AdminLogins WHERE id=?",
                                              (userid,))[0][0], password):
             admin = True
-            login_message = app_content.login_success_message
+            login_message = code_params.login_success_message
             success = True
 
     if not success:
-        login_message = app_content.login_failure_message
+        login_message = code_params.login_failure_message
     return app.redirect("/login")
 
 

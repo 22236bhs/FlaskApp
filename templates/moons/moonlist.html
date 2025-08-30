@@ -13,30 +13,23 @@
 
 {% block content %}
 
-{% for i in range(4) %}
-
+{% for i in range(5) %}
+<div class="grouping-border">
+<h1 class="moon-group-header">{{moon_tiers[i]}}</h1>
+<br>
 {% for moon in params[i] %}
+
 <h1 class="moon-entry">
 <a href="/moons/{{moon['id']}}">
 <h2 class="link">{{moon['name']}}</h2>
 <h3 class="link">Price: <cred class="link">▮</cred>{{moon['price']}}</h3>
 </a>
 </h1>
-{% endfor %}
 
+{% endfor %}
+</div>
 <br>
 
-{% endfor %}
-
-<h1>Secret Moons</h1>
-
-{% for moon in params[4] %}
-<h1 class="moon-entry">
-<a href="/moons/{{moon['id']}}">
-<h2 class="link">{{moon['name']}}</h2>
-<h3 class="link">Price: <cred class="link">▮</cred>{{moon['price']}}</h3>
-</a>
-</h1>
 {% endfor %}
 
 {% endblock %}
