@@ -18,8 +18,8 @@
 {% for moon in params[i] %}
 <h1 class="moon-entry">
 <a href="/moons/{{moon['id']}}">
-<h2>{{moon['name']}}</h2>
-<h3>Price: <cred>▮</cred>{{moon['price']}}</h3>
+<h2 class="link">{{moon['name']}}</h2>
+<h3 class="link">Price: <cred class="link">▮</cred>{{moon['price']}}</h3>
 </a>
 </h1>
 {% endfor %}
@@ -33,8 +33,8 @@
 {% for moon in params[4] %}
 <h1 class="moon-entry">
 <a href="/moons/{{moon['id']}}">
-<h2>{{moon['name']}}</h2>
-<h3>Price: <cred>▮</cred>{{moon['price']}}</h3>
+<h2 class="link">{{moon['name']}}</h2>
+<h3 class="link">Price: <cred class="link">▮</cred>{{moon['price']}}</h3>
 </a>
 </h1>
 {% endfor %}

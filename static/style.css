@@ -64,3 +64,16 @@ input{
 div{
     width: auto;
 }
+
+.link{
+    color: inherit;
+}
+
+a:hover{
+    color: white;
+}
+
+.submit-button:hover{
+    color: black;
+    background-color: white;
+}
