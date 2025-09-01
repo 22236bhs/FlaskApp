@@ -466,7 +466,7 @@ def add_moon():
             (name, risk_level, price, moon_interior, max_indoor_power, max_outdoor_power,
              conditions, history, fauna, description, tier, "placeholder_image")
         )
-        moon_id = len(execute_query("SELECT id FROM Moons;"))
+        moon_id = execute_query("SELECT id FROM Moons;")[-1][0] + 1
         for i in weather_list:
             execute_query('''
                           INSERT INTO MoonWeathers (moon_id, weather_id)
