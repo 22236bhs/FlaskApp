@@ -18,6 +18,15 @@
     <textarea name="description" class="text-area-input"></textarea>
     <br><br><br>
 
+    <label class="form-label">Moons</label>
+    <br>
+    {% for moon in moons %}
+    <br>
+    <input type="checkbox" name="{{'moon' + moon[0]|string}}">
+    <label style="font-size: 125%;">{{moon[1]}}</label>
+    {% endfor %}
+    <br><br><br>
+
     <input type="submit" value="Add Weather" class="submit-button">
     <br><br><br>
 

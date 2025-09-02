@@ -621,7 +621,9 @@ def delete_tool(id):
 @app.route("/admin/weathers/add")  # Page to add details for a new weather
 def add_weather_page():
     if admin:
+        moon_entries = execute_query("SELECT id, name FROM Moons")
         return render_template("weathers/weatheradminadd.html",
+                               moons=moon_entries,
                                title=get_title("/admin/weathers/add"))
     else:
         return admin_perms_denied()
@@ -632,10 +634,26 @@ def add_weather():
     if admin:
         name = request.form.get("name")
         description = request.form.get("description").replace("\n", "\\n")
+
+        moon_entries = execute_query("SELECT id FROM Moons;")
+        moon_list = []
+
+        for i in range(len(moon_entries)):
+            if request.form.get("moon" + str(moon_entries[i][0])):
+                moon_list.append(moon_entries[i][0])
+
+        weather_id = execute_query("SELECT id FROM Weathers;")[-1][0] + 1
+
         execute_query('''
                       INSERT INTO Weathers (name, description, pictures)
                       VALUES (?, ?, ?)''',
                       (name, description, "placeholder_image"))
+        
+        for i in range(len(moon_list)):
+            execute_query('''
+                          INSERT INTO MoonWeathers (moon_id, weather_id)
+                          VALUES (?, ?)''',
+                          (moon_list[i], weather_id))
 
         return app.redirect("/weathers")
     else:
@@ -657,6 +675,7 @@ def delete_weather_page():
 def delete_weather(id):
     if admin:
         execute_query("DELETE FROM Weathers WHERE id=?", (id,))
+        execute_query("DELETE FROM MoonWeathers WHERE weather_id=?", (id,))
         return app.redirect("/weathers")
     else:
         return admin_perms_denied()
