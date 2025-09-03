@@ -26,7 +26,8 @@ def set_picture_list(picture_string):
 
 def admin_perms_denied():
     '''Redirects the user to a page that denies admin access'''
-    return render_template("adminpermsdenied.html")
+    return render_template("adminpermsdenied.html",
+                           title="Access Denied")
 
 
 def get_title(route):
