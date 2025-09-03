@@ -6,6 +6,10 @@
 {% endblock %}
 
 {% block content %}
+{% if message %}
+<h1>{{message}}</h1>
+<br>
+{% endif %}
 <form action="/admin/addmoon" method="post">
 
     <label class="form-label">Name</label>

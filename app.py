@@ -8,6 +8,7 @@ DATABASE = "LCdb.db"
 
 admin = False
 login_message = ""
+fail_message = ""
 
 
 def execute_query(query, params=()):
@@ -421,6 +422,9 @@ def logout():
 @app.route("/admin/moons/add")  # Page to add details for a new moon
 def add_moon_page():
     if admin:
+        global fail_message
+        submit_message = fail_message
+        fail_message = ""
         risk_level_entries = execute_query("SELECT id, name FROM RiskLevels;")
         interior_entries = execute_query("SELECT id, name FROM Interiors;")
         weather_entries = execute_query("SELECT id, name FROM Weathers;")
@@ -428,7 +432,8 @@ def add_moon_page():
                                risk_levels=risk_level_entries,
                                interiors=interior_entries,
                                weathers=weather_entries,
-                               title=get_title("/admin/moons/add"))
+                               title=get_title("/admin/moons/add"),
+                               message=submit_message)
     else:
         return admin_perms_denied()
 
@@ -436,6 +441,7 @@ def add_moon_page():
 @app.route("/admin/addmoon", methods=['GET', 'POST'])  # Add moon to database
 def add_moon():
     if admin:
+        global fail_message
         name = request.form.get("name")
         risk_level = request.form.get("risk_level")
         price = request.form.get("price")
@@ -451,6 +457,18 @@ def add_moon():
         history = history.replace("\n", "\\n")
         fauna = fauna.replace("\n", "\\n")
         description = description.replace("\n", "\\n")
+
+        if not name:
+            fail_message = code_params.moon_invalid_name
+            return app.redirect("/admin/moons/add")
+
+        if len(name) > code_params.moon_name_max_length:
+            fail_message = code_params.moon_name_too_large
+            return app.redirect("/admin/moons/add")
+
+        if not (risk_level,) in execute_query("SELECT id FROM RiskLevels;"):
+            fail_message = code_params.moon_invalid_risk_level
+            return app.redirect("/admin/moons/add")
 
         weather_entries = execute_query("SELECT id FROM Weathers;")
         weather_list = []
@@ -649,7 +667,7 @@ def add_weather():
                       INSERT INTO Weathers (name, description, pictures)
                       VALUES (?, ?, ?)''',
                       (name, description, "placeholder_image"))
-        
+
         for i in range(len(moon_list)):
             execute_query('''
                           INSERT INTO MoonWeathers (moon_id, weather_id)
