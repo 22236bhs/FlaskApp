@@ -14,7 +14,7 @@
 
     <label class="form-label">Name</label>
     <br><br>
-    <input type="text" name="name" required>
+    <input type="text" name="name" required maxlength="{{name_max_length}}">
     <br><br><br>
 
     <label class="form-label">Risk Level</label>
@@ -52,22 +52,22 @@
 
     <label class="form-label">Conditions</label>
     <br><br>
-    <textarea name="conditions" class="text-area-input"></textarea>
+    <textarea name="conditions" class="text-area-input" maxlength="{{conditions_max_length}}"></textarea>
     <br><br><br>
 
     <label class="form-label">History</label>
     <br><br>
-    <textarea name="history" class="text-area-input"></textarea>
+    <textarea name="history" class="text-area-input" maxlength="{{history_max_length}}"></textarea>
     <br><br><br>
 
     <label class="form-label">Fauna</label>
     <br><br>
-    <textarea name="fauna" class="text-area-input"></textarea>
+    <textarea name="fauna" class="text-area-input" maxlength="{{fauna_max_length}}"></textarea>
     <br><br><br>
 
     <label class="form-label">Description</label>
     <br><br>
-    <textarea name="description" class="text-area-input"></textarea>
+    <textarea name="description" class="text-area-input" maxlength="description_max_length"></textarea>
     <br><br><br>
 
     <label class="form-label">Tier</label>

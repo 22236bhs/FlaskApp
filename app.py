@@ -45,6 +45,21 @@ def push_error(number, code):
                            error=code), number
 
 
+def reject_input(route, message):
+    global fail_message
+    fail_message = message
+    return app.redirect(route)
+
+
+def is_number(x):
+    try:
+        int(x)
+    except:
+        return False
+    else:
+        return True
+
+
 @app.route("/")  # Home page for selection
 def home():
     params = execute_query('''
@@ -433,7 +448,12 @@ def add_moon_page():
                                interiors=interior_entries,
                                weathers=weather_entries,
                                title=get_title("/admin/moons/add"),
-                               message=submit_message)
+                               message=submit_message,
+                               name_max_length=code_params.moon_name_max_length,
+                               conditions_max_length=code_params.moon_conditions_max_length,
+                               history_max_length=code_params.moon_history_max_length,
+                               fauna_max_length=code_params.moon_fauna_max_length,
+                               description_max_length=code_params.moon_description_max_length)
     else:
         return admin_perms_denied()
 
@@ -459,16 +479,59 @@ def add_moon():
         description = description.replace("\n", "\\n")
 
         if not name:
-            fail_message = code_params.moon_invalid_name
-            return app.redirect("/admin/moons/add")
+            print(1)
+            return reject_input("/admin/moons/add", code_params.invalid_input)
 
         if len(name) > code_params.moon_name_max_length:
-            fail_message = code_params.moon_name_too_large
-            return app.redirect("/admin/moons/add")
+            print(2)
+            return reject_input("/admin/moons/add", code_params.invalid_input)
 
-        if not (risk_level,) in execute_query("SELECT id FROM RiskLevels;"):
-            fail_message = code_params.moon_invalid_risk_level
-            return app.redirect("/admin/moons/add")
+        if not (risk_level in [str(i[0]) for i in execute_query("SELECT id FROM RiskLevels;")]):
+            print(3)
+            return reject_input("/admin/moons/add", code_params.invalid_input)
+
+        if not is_number(price):
+            print(4)
+            return reject_input("/admin/moons/add", code_params.invalid_input)
+
+        if not (moon_interior in [str(i[0]) for i in execute_query("SELECT id FROM Interiors;")]):
+            print(5)
+            return reject_input("/admin/moons/add", code_params.invalid_input)
+
+        if not is_number(max_indoor_power):
+            print(6)
+            return reject_input("/admin/moons/add", code_params.invalid_input)
+
+        if not is_number(max_outdoor_power):
+            print(7)
+            return reject_input("/admin/moons/add", code_params.invalid_input)
+
+        if conditions:
+            if len(conditions) > code_params.moon_conditions_max_length:
+                print(8)
+                return reject_input("/admin/moons/add", code_params.invalid_input)
+
+        if history:
+            if len(history) > code_params.moon_history_max_length:
+                print(9)
+                return reject_input("/admin/moons/add", code_params.invalid_input)
+
+        if fauna:
+            if len(fauna) > code_params.moon_fauna_max_length:
+                print(10)
+                return reject_input("/admin/moons/add", code_params.invalid_input)
+
+        if description:
+            if len(description) > code_params.moon_description_max_length:
+                print(11)
+                return reject_input("/admin/moons/add", code_params.invalid_input)
+
+        if is_number(tier):
+            if int(tier) < 1 or int(tier) > code_params.moon_tier_range:
+                print(12)
+                return reject_input("/admin/moons/add", code_params.invalid_input)
+        else:
+            return reject_input("/admin/moons/add", code_params.invalid_input)
 
         weather_entries = execute_query("SELECT id FROM Weathers;")
         weather_list = []
@@ -737,8 +800,9 @@ def delete_interior_page():
 @app.route("/admin/deleteinterior/<int:id>")  # Delete selected interior
 def delete_interior(id):
     if admin:
-        execute_query("DELETE FROM Interiors WHERE id=?", (id,))
-        return app.redirect("/interiors")
+        if not id == 1:
+            execute_query("DELETE FROM Interiors WHERE id=?", (id,))
+            return app.redirect("/interiors")
     else:
         return admin_perms_denied()
 
