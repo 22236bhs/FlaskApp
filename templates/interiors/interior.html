@@ -1,10 +1,15 @@
 {% extends "layout.html" %}
 
 {% block header %}
-
-<h3><a href="/interiors">* BACK</a></h3>
-<h1>{{title}}</h1>
-
+<div class="header-grid">
+<div>
+    <h3><a href="/interiors">* BACK</a></h3>
+    <h1>{{title}}</h1>
+</div>
+<div>
+    <img src="{{url_for('static', filename='images/Interiors/' + params['id'] | string + '/' + params['header_picture'] + '.jpg')}}" alt="placeholder" class="header-image">
+</div>
+</div>
 {% endblock %}
 
 {% block content %}
@@ -15,7 +20,7 @@
 <div class="pictures-grid">
     {% for i in params['pictures'] %}
     <div class="pictures">
-        <img src="../static/images/{{i}}.jpg" alt="{{i}}" width="50%">
+        <img src="../static/images/Interiors/{{params['id']}}/{{i}}.jpg" alt="{{i}}" width="50%">
     </div>
     {% endfor %}
 </div>

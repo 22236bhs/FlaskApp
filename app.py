@@ -108,7 +108,8 @@ def entity(id):
     data = execute_query('''
                         SELECT Entities.name, danger, bestiary, Setting.name,
                         Moons.name, sp_hp, mp_hp, power, max_spawned,
-                        Entities.description, Entities.pictures, Moons.id
+                        Entities.description, Entities.pictures, Moons.id,
+                        Entities.header_picture
                         FROM Entities
                         JOIN Moons ON Entities.fav_moon = Moons.id
                         JOIN Setting ON Entities.setting = Setting.id
@@ -130,7 +131,8 @@ def entity(id):
         "max_spawned": data[8],
         "description": data[9],
         "pictures": set_picture_list(data[10]),
-        "fav_moon_id": data[11]
+        "fav_moon_id": data[11],
+        "header_picture": data[12]
     }
 
     if params["bestiary"]:
@@ -302,7 +304,7 @@ def weathers():
 @app.route("/weathers/<int:id>")  # Weather data page
 def weather(id):
     data = execute_query('''
-                        SELECT name, description, pictures
+                        SELECT name, description, pictures, header_picture
                         FROM Weathers
                         WHERE id = ?;''', (id,))
 
@@ -319,7 +321,8 @@ def weather(id):
         "name": data[0],
         "moons": moondata,
         "description": data[1],
-        "pictures": set_picture_list(data[2])
+        "pictures": set_picture_list(data[2]),
+        "header_picture": data[3]
     }
 
     if params["description"]:
@@ -350,7 +353,7 @@ def interiors():
 @app.route("/interiors/<int:id>")  # Interior data page
 def interior(id):
     data = execute_query('''
-                        SELECT name, description, pictures
+                        SELECT name, description, pictures, header_picture
                         FROM Interiors
                         WHERE id = ?;''', (id,))
 
@@ -362,7 +365,8 @@ def interior(id):
     params = {
         "name": data[0],
         "description": data[1],
-        "pictures": set_picture_list(data[2])
+        "pictures": set_picture_list(data[2]),
+        "header_picture": data[3]
     }
 
     if params["description"]:
