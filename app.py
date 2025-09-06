@@ -168,7 +168,8 @@ def moon(id):
     data = execute_query('''
                         SELECT Moons.name, RiskLevels.name, price, Interiors.id,
                         Interiors.name, max_indoor_power, max_outdoor_power,
-                        conditions, history, fauna, Moons.description, tier, Moons.pictures, Moons.id
+                        conditions, history, fauna, Moons.description, tier,
+                        Moons.pictures, Moons.id, Moons.header_picture
                         FROM Moons
                         JOIN RiskLevels ON Moons.risk_level = RiskLevels.id
                         JOIN Interiors ON Moons.interior = Interiors.id
@@ -197,7 +198,8 @@ def moon(id):
         "tier": data[11],
         "pictures": set_picture_list(data[12]),
         "weathers": weatherdata,
-        "id": data[13]
+        "id": data[13],
+        "header_picture": data[14]
     }
 
     if params["conditions"]:
@@ -252,7 +254,7 @@ def tools():
 @app.route("/tools/<int:id>")  # Tool data page
 def tool(id):
     data = execute_query('''
-                        SELECT name, price, description, upgrade, weight, pictures, id
+                        SELECT name, price, description, upgrade, weight, pictures, id, header_picture
                         FROM Tools
                         WHERE id = ?;''', (id,))
 
@@ -268,7 +270,8 @@ def tool(id):
         "upgrade": data[3],
         "weight": data[4],
         "pictures": set_picture_list(data[5]),
-        "id": data[6]
+        "id": data[6],
+        "header_picture": data[7]
     }
 
     if params["description"]:

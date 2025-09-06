@@ -87,3 +87,19 @@ a:hover{
 .moon-group-header{
     text-decoration: underline;
 }
+
+.header-grid{
+    display: grid;
+    grid-template-columns: 1fr 2fr;
+    border-bottom: 2px dashed rgb(83, 221, 58);
+    width: 50%;
+    padding-bottom: 2%;
+}
+
+img{
+    width: 50%;
+}
+
+.header-image{
+    width: 70%;
+}
