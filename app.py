@@ -54,7 +54,7 @@ def reject_input(route, message):
 def is_number(x):
     try:
         int(x)
-    except:
+    except ValueError:
         return False
     else:
         return True
@@ -478,57 +478,54 @@ def add_moon():
         fauna = fauna.replace("\n", "\\n")
         description = description.replace("\n", "\\n")
 
+        if not price:
+            price = "0"
+
+        if not max_indoor_power:
+            max_indoor_power = "0"
+
+        if not max_outdoor_power:
+            max_outdoor_power = "0"
+
         if not name:
-            print(1)
             return reject_input("/admin/moons/add", code_params.invalid_input)
 
         if len(name) > code_params.moon_name_max_length:
-            print(2)
             return reject_input("/admin/moons/add", code_params.invalid_input)
 
         if not (risk_level in [str(i[0]) for i in execute_query("SELECT id FROM RiskLevels;")]):
-            print(3)
             return reject_input("/admin/moons/add", code_params.invalid_input)
 
         if not is_number(price):
-            print(4)
             return reject_input("/admin/moons/add", code_params.invalid_input)
 
         if not (moon_interior in [str(i[0]) for i in execute_query("SELECT id FROM Interiors;")]):
-            print(5)
             return reject_input("/admin/moons/add", code_params.invalid_input)
 
         if not is_number(max_indoor_power):
-            print(6)
             return reject_input("/admin/moons/add", code_params.invalid_input)
 
         if not is_number(max_outdoor_power):
-            print(7)
             return reject_input("/admin/moons/add", code_params.invalid_input)
 
         if conditions:
             if len(conditions) > code_params.moon_conditions_max_length:
-                print(8)
                 return reject_input("/admin/moons/add", code_params.invalid_input)
 
         if history:
             if len(history) > code_params.moon_history_max_length:
-                print(9)
                 return reject_input("/admin/moons/add", code_params.invalid_input)
 
         if fauna:
             if len(fauna) > code_params.moon_fauna_max_length:
-                print(10)
                 return reject_input("/admin/moons/add", code_params.invalid_input)
 
         if description:
             if len(description) > code_params.moon_description_max_length:
-                print(11)
                 return reject_input("/admin/moons/add", code_params.invalid_input)
 
         if is_number(tier):
             if int(tier) < 1 or int(tier) > code_params.moon_tier_range:
-                print(12)
                 return reject_input("/admin/moons/add", code_params.invalid_input)
         else:
             return reject_input("/admin/moons/add", code_params.invalid_input)
@@ -540,6 +537,8 @@ def add_moon():
             if request.form.get("weather" + str(weather_entries[i][0])):
                 weather_list.append(weather_entries[i][0])
 
+        moon_id = execute_query("SELECT id FROM Moons;")[-1][0] + 1
+
         execute_query(
             '''
             INSERT INTO Moons (name, risk_level, price, interior, max_indoor_power,
@@ -548,7 +547,8 @@ def add_moon():
             (name, risk_level, price, moon_interior, max_indoor_power, max_outdoor_power,
              conditions, history, fauna, description, tier, "placeholder_image")
         )
-        moon_id = execute_query("SELECT id FROM Moons;")[-1][0] + 1
+
+        print(execute_query("SELECT id FROM Moons;"))
         for i in weather_list:
             execute_query('''
                           INSERT INTO MoonWeathers (moon_id, weather_id)
