@@ -91,9 +91,15 @@ a:hover{
 .header-grid{
     display: grid;
     grid-template-columns: 1fr 2fr;
+    
+}
+
+.header{
     border-bottom: 2px dashed rgb(83, 221, 58);
-    width: 50%;
     padding-bottom: 2%;
+    margin-bottom: 2%;
+    width: 50%;
+    padding-right: 2%;
 }
 
 img{
@@ -103,3 +109,8 @@ img{
 .header-image{
     width: 70%;
 }
+
+.header-image-div{
+    text-align: right;
+}
+
