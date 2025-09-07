@@ -1,10 +1,13 @@
 from flask import Flask, render_template, request, abort
 from werkzeug.security import check_password_hash
+from werkzeug.utils import secure_filename
 import sqlite3
 import code_params
+import os
 
 app = Flask(__name__)
 DATABASE = "LCdb.db"
+app.config["UPLOAD_FOLDER"] = code_params.upload_folder
 
 admin = False
 login_message = ""
@@ -32,6 +35,7 @@ def admin_perms_denied():
 
 
 def get_title(route):
+    '''Gets the title of a page based on its route'''
     return execute_query('''
                          SELECT title
                          FROM PageTitles
@@ -39,6 +43,7 @@ def get_title(route):
 
 
 def push_error(number, code):
+    '''Redirect the user to the error page with the given codeW'''
     return render_template("error_page.html",
                            error_code=number,
                            title=f"{number} Error",
@@ -46,12 +51,14 @@ def push_error(number, code):
 
 
 def reject_input(route, message):
+    '''Redirect the user to a page with a message'''
     global fail_message
     fail_message = message
     return app.redirect(route)
 
 
 def is_number(x):
+    '''Check if the number is able to be converted to a number'''
     try:
         int(x)
     except ValueError:
@@ -480,10 +487,19 @@ def add_moon():
         fauna = request.form.get("fauna")
         description = request.form.get("description")
         tier = request.form.get("tier")
+        header_picture = request.files["header_picture"]
         conditions = conditions.replace("\n", "\\n")
         history = history.replace("\n", "\\n")
         fauna = fauna.replace("\n", "\\n")
         description = description.replace("\n", "\\n")
+
+        if "header_picture" not in request.files:
+            return reject_input("/admin/moons/add", code_params.invalid_input)
+
+        header_picture_name = secure_filename(header_picture.filename)
+
+        if not (header_picture and header_picture_name and header_picture.name):
+            return reject_input("/admin/moons/add", code_params.invalid_image)
 
         if not price:
             price = "0"
@@ -545,17 +561,18 @@ def add_moon():
                 weather_list.append(weather_entries[i][0])
 
         moon_id = execute_query("SELECT id FROM Moons;")[-1][0] + 1
+        os.mkdir(f"{app.config["UPLOAD_FOLDER"]}/Moons/{moon_id}")
+        header_picture.save(os.path.join(f"{app.config["UPLOAD_FOLDER"]}/Moons/{moon_id}/", header_picture_name))
 
         execute_query(
             '''
             INSERT INTO Moons (name, risk_level, price, interior, max_indoor_power,
-            max_outdoor_power, conditions, history, fauna, description, tier, pictures)
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)''',
+            max_outdoor_power, conditions, history, fauna, description, tier, pictures, header_picture)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)''',
             (name, risk_level, price, moon_interior, max_indoor_power, max_outdoor_power,
-             conditions, history, fauna, description, tier, "placeholder_image")
+             conditions, history, fauna, description, tier, "placeholder_image", header_picture_name)
         )
 
-        print(execute_query("SELECT id FROM Moons;"))
         for i in weather_list:
             execute_query('''
                           INSERT INTO MoonWeathers (moon_id, weather_id)

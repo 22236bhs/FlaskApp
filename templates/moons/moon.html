@@ -7,7 +7,7 @@
     <h1>{{title}}</h1>
 </div>
 <div class="header-image-div">
-    <img src="{{url_for('static', filename='images/Moons/' + params['id'] | string + '/' + params['header_picture'] + '.jpg')}}" alt="placeholder" class="header-image">
+    <img src="{{url_for('static', filename='images/Moons/' + params['id'] | string + '/' + params['header_picture'])}}" alt="placeholder" class="header-image">
 </div>
 </div>
 {% endblock %}
@@ -48,7 +48,7 @@
 <div class="pictures-grid">
     {% for i in params['pictures'] %}
     <div class="pictures">
-        <img src="../static/images/Moons/{{params['id']}}/{{i}}.jpg" alt="{{i}}">
+        <img src="../static/images/Moons/{{params['id']}}/{{i}}" alt="{{i}}">
     </div>
     {% endfor %}
 </div>

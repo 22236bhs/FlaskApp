@@ -10,7 +10,7 @@
 <h1>{{message}}</h1>
 <br>
 {% endif %}
-<form action="/admin/addmoon" method="post">
+<form action="/admin/addmoon" method="post" enctype="multipart/form-data">
 
     <label class="form-label">Name</label>
     <br><br>
@@ -91,7 +91,13 @@
 
     <br><br><br>
 
+    <label class="form-label">Header Picture</label>
+    <br><br>
+    <input type="file" name="header_picture" accept="image/*">
+    <br><br><br>
+
     <input type="submit" value="Add Moon" class="submit-button">
     <br><br><br>
+
 </form>
 {% endblock %}

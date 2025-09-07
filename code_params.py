@@ -17,3 +17,7 @@ moon_history_max_length = 600
 moon_fauna_max_length = 600
 moon_description_max_length = 600
 moon_tier_range = 5
+
+upload_folder = "static/images"
+
+invalid_image = "Invalid image"
