@@ -9,7 +9,7 @@ app = Flask(__name__)
 DATABASE = "LCdb.db"
 app.config["UPLOAD_FOLDER"] = code_params.upload_folder
 
-admin = False
+admin = True
 login_message = ""
 fail_message = ""
 
@@ -23,7 +23,8 @@ def execute_query(query, params=()):
 def set_picture_list(picture_string):
     '''Formats the picture string into list'''
     if picture_string:
-        return picture_string.split(" ")
+
+        return picture_string.strip().split(" ")
     else:
         return []
 
@@ -68,15 +69,20 @@ def is_number(x):
 
 
 def process_image(name):
+    print(request.files)
     if name not in request.files:
+        print("not in request")
         return False
 
     file = request.files[name]
     filename = secure_filename(file.filename)
-
+    print(file)
+    print(filename)
+    print(file.filename)
     if not (file and filename and file.name):
+        print("no file")
         return False
-    
+
     return (file, filename)
 
 
@@ -235,7 +241,8 @@ def moon(id):
 
     return render_template("moons/moon.html",
                            params=params,
-                           title=params["name"])
+                           title=params["name"],
+                           admin=admin)
 
 
 @app.route("/tools", methods=['GET', 'POST'])  # Tool list
@@ -579,10 +586,10 @@ def add_moon():
         execute_query(
             '''
             INSERT INTO Moons (name, risk_level, price, interior, max_indoor_power,
-            max_outdoor_power, conditions, history, fauna, description, tier, pictures, header_picture)
+            max_outdoor_power, conditions, history, fauna, description, tier, header_picture, pictures)
             VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)''',
             (name, risk_level, price, moon_interior, max_indoor_power, max_outdoor_power,
-             conditions, history, fauna, description, tier, "placeholder_image", header_picture_name)
+             conditions, history, fauna, description, tier, header_picture_name, "")
         )
 
         for i in weather_list:
@@ -625,14 +632,17 @@ def delete_moon(id):
 @app.route("/admin/moons/addimage/<int:id>")
 def add_moon_image_page(id):
     if admin:
+        global fail_message
         if not execute_query("SELECT id FROM Moons WHERE id=?", (id,)):
             abort(404)
-        images = execute_query("SELECT pictures FROM Moons WHERE id=?;", (id,))
+        moon_name = execute_query("SELECT name FROM Moons WHERE id=?;", (id,))
+        submit_message = fail_message
+        fail_message = ""
         return render_template("moons/moonadminaddimage.html",
-                               images=images,
+                               name=moon_name[0][0],
                                title=get_title("/admin/moons/addimage"),
                                id=id,
-                               message=fail_message)
+                               message=submit_message)
     else:
         return admin_perms_denied()
 
@@ -644,7 +654,7 @@ def add_moon_image(id):
             abort(404)
         image_data = process_image("image")
         if not image_data:
-            return reject_input(f"admin/moons/addimage/{id}", code_params.invalid_image)
+            return reject_input(f"/admin/moons/addimage/{id}", code_params.invalid_image)
         image_data[0].save(os.path.join(f"{app.config["UPLOAD_FOLDER"]}/Moons/{id}/",
                                         image_data[1]))
         execute_query('''
@@ -653,11 +663,57 @@ def add_moon_image(id):
                       WHERE id = ?;''', (str(execute_query('''
                                                     SELECT pictures
                                                     FROM Moons
-                                                    WHERE id=?''', (id,))) + image_data[1], id))
+                                                    WHERE id=?''', (id,))[0][0]) + image_data[1] + " ", id))
         return app.redirect(f"/moons/{id}")
     else:
         return admin_perms_denied()
 
+
+@app.route("/admin/moons/deleteimage/<int:id>")
+def delete_moon_image_page(id):
+    if admin:
+        if not execute_query("SELECT id FROM Moons WHERE id=?;", (id,)):
+            abort(404)
+        picture_data = execute_query("SELECT pictures FROM Moons WHERE id=?;", (id,))
+        picture_data = set_picture_list(picture_data[0][0])
+        picture_id = []
+        picture_count = len(picture_data)
+        for i in range(picture_count):
+            picture_id.append(i)
+        return render_template("moons/moonadmindeleteimage.html",
+                               title=get_title("/admin/moons/deleteimage"),
+                               pictures=picture_data,
+                               ids=picture_id,
+                               moon_id=id,
+                               size=picture_count,
+                               name=execute_query("SELECT name FROM Moons WHERE id=?",
+                                                  (id,))[0][0])
+    else:
+        return admin_perms_denied()
+
+
+@app.route("/admin/moons/deletemoonimage/<int:moon_id>/<int:picture_id>")
+def delete_moon_image(moon_id, picture_id):
+    if admin:
+        if not execute_query("SELECT id FROM Moons WHERE id=?", (moon_id,)):
+            print(1)
+            abort(404)
+        pictures = execute_query("SELECT pictures FROM Moons WHERE id=?", (moon_id,))
+        pictures = set_picture_list(pictures[0][0])
+        if picture_id < 0 or picture_id >= len(pictures):
+            abort(404)
+        os.remove(f"{app.config["UPLOAD_FOLDER"]}/Moons/{moon_id}/{pictures[picture_id]}")
+        pictures.pop(picture_id)
+        pictures = " ".join(pictures)
+        execute_query('''
+                      UPDATE Moons
+                      SET pictures = ?
+                      WHERE id=?''',
+                      (pictures, moon_id))
+        
+        return app.redirect(f"/moons/{moon_id}")
+    else:
+        return admin_perms_denied()
 
 @app.route("/admin/entity/add")  # Page to add details for a new entity
 def add_entity_page():

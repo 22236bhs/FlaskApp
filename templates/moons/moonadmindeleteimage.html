@@ -1,0 +1,21 @@
+{% extends "layout.html" %}
+
+{% block header %}
+<h3><a href="/moons/{{moon_id}}">* BACK</a></h3>
+<h1>Remove an image from {{name}}</h1>
+{% endblock %}
+
+{% block content %}
+<h1>Select an image to delete</h1>
+
+<div class="pictures-grid">
+{% for i in range(size) %}
+<div>
+<a href="/admin/moons/deletemoonimage/{{moon_id}}/{{ids[i]}}">
+    <img class="pictures" src="{{url_for('static', filename='images/Moons/' + moon_id | string + '/' + pictures[i])}}" alt="{{id}}">
+</a>
+</div>
+{% endfor %}
+</div>
+
+{% endblock %}

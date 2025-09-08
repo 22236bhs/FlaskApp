@@ -4,10 +4,14 @@
 <div class="header-grid">
 <div>
     <h3><a href="/moons">* BACK</a></h3>
+    {% if admin %}
+    <h2><a href="/admin/moons/addimage/{{params['id']}}">* Add Image</a></h2>
+    <h2><a href="/admin/moons/deleteimage/{{params['id']}}">* Remove Image</a></h2>
+    {% endif %}
     <h1>{{title}}</h1>
 </div>
 <div class="header-image-div">
-    <img src="{{url_for('static', filename='images/Moons/' + params['id'] | string + '/' + params['header_picture'])}}" alt="placeholder" class="header-image">
+    <img src="{{url_for('static', filename='images/Moons/' + params['id'] | string + '/' + params['header_picture'])}}" alt="Header Image" class="header-image">
 </div>
 </div>
 {% endblock %}
@@ -38,13 +42,16 @@
 <h2>Description:</h2>
 <p class="descriptions">{{ params["description"] | replace('\n', '<br>' | safe)}}</p>
 <h2>Possible Weathers: </h2>
-
+{% if params["weathers"] %}
 {% for weather in params["weathers"] %}
 
 <h3><a href="/weathers/{{weather[0]}}">* {{weather[1]}}</a></h3>
 
 {% endfor %}
-
+{% else %}
+<h3>No weathers</h3>
+{% endif %}
+<h2>Pictures:</h2>
 <div class="pictures-grid">
     {% for i in params['pictures'] %}
     <div class="pictures">
