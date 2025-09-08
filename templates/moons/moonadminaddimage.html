@@ -2,5 +2,20 @@
 
 {% block header %}
 <h3><a href="/moons">* BACK</a></h3>
-<h1>Add </h1>
+<h1>Add an image for the moon</h1>
+{% endblock %}
+
+{% block content %}
+{% if message %}
+<h1>{{message}}</h1>
+<br>
+{% endif %}
+<form action="/admin/moons/addmoonimage/{{id}}" class="post">
+    <label class="form-label">Add Image</label>
+    <br><br>
+    <input type="file" name="image" accept="image/*" required>
+    <br><br><br>
+
+    <input type="submit" value="Add Image" class="submit-button">
+</form>
 {% endblock %}

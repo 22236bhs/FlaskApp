@@ -43,7 +43,7 @@ def get_title(route):
 
 
 def push_error(number, code):
-    '''Redirect the user to the error page with the given codeW'''
+    '''Redirect the user to the error page with the given code'''
     return render_template("error_page.html",
                            error_code=number,
                            title=f"{number} Error",
@@ -65,6 +65,19 @@ def is_number(x):
         return False
     else:
         return True
+
+
+def process_image(name):
+    if name not in request.files:
+        return False
+
+    file = request.files[name]
+    filename = secure_filename(file.filename)
+
+    if not (file and filename and file.name):
+        return False
+    
+    return (file, filename)
 
 
 @app.route("/")  # Home page for selection
@@ -492,14 +505,12 @@ def add_moon():
         fauna = fauna.replace("\n", "\\n")
         description = description.replace("\n", "\\n")
 
-        if "header_picture" not in request.files:
-            return reject_input("/admin/moons/add", code_params.invalid_input)
-
-        header_picture = request.files["header_picture"]
-        header_picture_name = secure_filename(header_picture.filename)
-
-        if not (header_picture and header_picture_name and header_picture.name):
-            return reject_input("/admin/moons/add", code_params.invalid_image)
+        image_data = process_image("header_picture")
+        if image_data:
+            header_picture = image_data[0]
+            header_picture_name = image_data[1]
+        else:
+            return reject_input("/admin/addmoon", code_params.invalid_image)
 
         if not price:
             price = "0"
@@ -598,13 +609,52 @@ def delete_moon_page():
 @app.route("/admin/deletemoon/<int:id>")  # Delete the selected moon
 def delete_moon(id):
     if admin:
+        if not execute_query("SELECT id FROM Moons WHERE id=?", (id,)):
+            abort(404)
         execute_query("DELETE FROM Moons WHERE id=?;", (id,))
         execute_query("DELETE FROM MoonWeathers WHERE moon_id=?", (id,))
         directory = f"{app.config["UPLOAD_FOLDER"]}/Moons/{id}"
         for file in os.listdir(directory):
             os.remove(f"{directory}/{file}")
-        os.rmdir(f"{app.config["UPLOAD_FOLDER"]}/Moons/{id}")
+        os.rmdir(directory)
         return app.redirect("/moons")
+    else:
+        return admin_perms_denied()
+
+
+@app.route("/admin/moons/addimage/<int:id>")
+def add_moon_image_page(id):
+    if admin:
+        if not execute_query("SELECT id FROM Moons WHERE id=?", (id,)):
+            abort(404)
+        images = execute_query("SELECT pictures FROM Moons WHERE id=?;", (id,))
+        return render_template("moons/moonadminaddimage.html",
+                               images=images,
+                               title=get_title("/admin/moons/addimage"),
+                               id=id,
+                               message=fail_message)
+    else:
+        return admin_perms_denied()
+
+
+@app.route("/admin/moons/addmoonimage/<int:id>", methods=["GET", "POST"])
+def add_moon_image(id):
+    if admin:
+        if not execute_query("SELECT id FROM Moons WHERE id=?", (id,)):
+            abort(404)
+        image_data = process_image("image")
+        if not image_data:
+            return reject_input(f"admin/moons/addimage/{id}", code_params.invalid_image)
+        image_data[0].save(os.path.join(f"{app.config["UPLOAD_FOLDER"]}/Moons/{id}/",
+                                        image_data[1]))
+        execute_query('''
+                      UPDATE Moons
+                      SET pictures = ?
+                      WHERE id = ?;''', (str(execute_query('''
+                                                    SELECT pictures
+                                                    FROM Moons
+                                                    WHERE id=?''', (id,))) + image_data[1], id))
+        return app.redirect(f"/moons/{id}")
     else:
         return admin_perms_denied()
 
@@ -669,6 +719,8 @@ def delete_entity_page():
 @app.route("/admin/deleteentity/<int:id>")  # Delete selected entity
 def delete_entity(id):
     if admin:
+        if not execute_query("SELECT id FROM Entities WHERE id=?", (id,)):
+            abort(404)
         execute_query("DELETE FROM Entities WHERE id=?;", (id,))
         return app.redirect("/entity")
     else:
@@ -723,6 +775,8 @@ def delete_tool_page():
 @app.route("/admin/deletetool/<int:id>")  # Delete selected tool
 def delete_tool(id):
     if admin:
+        if not execute_query("SELECT id FROM Tools WHERE id=?", (id,)):
+            abort(404)
         execute_query("DELETE FROM Tools WHERE id=?", (id,))
         return app.redirect("/tools")
     else:
@@ -785,6 +839,8 @@ def delete_weather_page():
 @app.route("/admin/deleteweather/<int:id>")  # Delete selected weather
 def delete_weather(id):
     if admin:
+        if not execute_query("SELECT id FROM Weathers WHERE id=?", (id,)):
+            abort(404)
         execute_query("DELETE FROM Weathers WHERE id=?", (id,))
         execute_query("DELETE FROM MoonWeathers WHERE weather_id=?", (id,))
         return app.redirect("/weathers")
@@ -829,6 +885,8 @@ def delete_interior_page():
 @app.route("/admin/deleteinterior/<int:id>")  # Delete selected interior
 def delete_interior(id):
     if admin:
+        if not execute_query("SELECT id FROM Interiors WHERE id=?", (id,)):
+            abort(404)
         if not id == 1:
             execute_query("DELETE FROM Interiors WHERE id=?", (id,))
             return app.redirect("/interiors")
