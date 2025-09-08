@@ -487,7 +487,6 @@ def add_moon():
         fauna = request.form.get("fauna")
         description = request.form.get("description")
         tier = request.form.get("tier")
-        header_picture = request.files["header_picture"]
         conditions = conditions.replace("\n", "\\n")
         history = history.replace("\n", "\\n")
         fauna = fauna.replace("\n", "\\n")
@@ -496,6 +495,7 @@ def add_moon():
         if "header_picture" not in request.files:
             return reject_input("/admin/moons/add", code_params.invalid_input)
 
+        header_picture = request.files["header_picture"]
         header_picture_name = secure_filename(header_picture.filename)
 
         if not (header_picture and header_picture_name and header_picture.name):
@@ -562,7 +562,8 @@ def add_moon():
 
         moon_id = execute_query("SELECT id FROM Moons;")[-1][0] + 1
         os.mkdir(f"{app.config["UPLOAD_FOLDER"]}/Moons/{moon_id}")
-        header_picture.save(os.path.join(f"{app.config["UPLOAD_FOLDER"]}/Moons/{moon_id}/", header_picture_name))
+        header_picture.save(os.path.join(f"{app.config["UPLOAD_FOLDER"]}/Moons/{moon_id}/",
+                                         header_picture_name))
 
         execute_query(
             '''
@@ -599,6 +600,10 @@ def delete_moon(id):
     if admin:
         execute_query("DELETE FROM Moons WHERE id=?;", (id,))
         execute_query("DELETE FROM MoonWeathers WHERE moon_id=?", (id,))
+        directory = f"{app.config["UPLOAD_FOLDER"]}/Moons/{id}"
+        for file in os.listdir(directory):
+            os.remove(f"{directory}/{file}")
+        os.rmdir(f"{app.config["UPLOAD_FOLDER"]}/Moons/{id}")
         return app.redirect("/moons")
     else:
         return admin_perms_denied()
