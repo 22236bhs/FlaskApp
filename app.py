@@ -9,7 +9,7 @@ app = Flask(__name__)
 DATABASE = "LCdb.db"
 app.config["UPLOAD_FOLDER"] = code_params.upload_folder
 
-admin = True
+admin = False
 login_message = ""
 fail_message = ""
 
@@ -69,18 +69,12 @@ def is_number(x):
 
 
 def process_image(name):
-    print(request.files)
     if name not in request.files:
-        print("not in request")
         return False
 
     file = request.files[name]
     filename = secure_filename(file.filename)
-    print(file)
-    print(filename)
-    print(file.filename)
     if not (file and filename and file.name):
-        print("no file")
         return False
 
     return (file, filename)
@@ -696,7 +690,6 @@ def delete_moon_image_page(id):
 def delete_moon_image(moon_id, picture_id):
     if admin:
         if not execute_query("SELECT id FROM Moons WHERE id=?", (moon_id,)):
-            print(1)
             abort(404)
         pictures = execute_query("SELECT pictures FROM Moons WHERE id=?", (moon_id,))
         pictures = set_picture_list(pictures[0][0])
