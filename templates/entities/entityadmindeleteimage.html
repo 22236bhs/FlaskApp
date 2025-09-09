@@ -1,7 +1,7 @@
 {% extends "layout.html" %}
 
 {% block header %}
-<h3><a href="/moons/{{moon_id}}">* BACK</a></h3>
+<h3><a href="/entity/{{entity_id}}">* BACK</a></h3>
 <h1>Delete an image from {{name}}</h1>
 {% endblock %}
 
@@ -11,8 +11,8 @@
 <div class="pictures-grid">
 {% for i in range(size) %}
 <div>
-<a href="/admin/moons/deletemoonimage/{{moon_id}}/{{ids[i]}}">
-    <img class="pictures" src="{{url_for('static', filename='images/Moons/' + moon_id | string + '/' + pictures[i])}}" alt="{{id}}">
+<a href="/admin/entity/deleteentityimage/{{entity_id}}/{{ids[i]}}">
+    <img class="pictures" src="{{url_for('static', filename='images/Entities/' + entity_id | string + '/' + pictures[i])}}" alt="{{id}}">
 </a>
 </div>
 {% endfor %}

@@ -9,7 +9,7 @@ app = Flask(__name__)
 DATABASE = "LCdb.db"
 app.config["UPLOAD_FOLDER"] = code_params.upload_folder
 
-admin = False
+admin = True
 login_message = ""
 fail_message = ""
 
@@ -129,7 +129,7 @@ def entity(id):
                         SELECT Entities.name, danger, bestiary, Setting.name,
                         Moons.name, sp_hp, mp_hp, power, max_spawned,
                         Entities.description, Entities.pictures, Moons.id,
-                        Entities.header_picture
+                        Entities.header_picture, Entities.id
                         FROM Entities
                         JOIN Moons ON Entities.fav_moon = Moons.id
                         JOIN Setting ON Entities.setting = Setting.id
@@ -152,7 +152,8 @@ def entity(id):
         "description": data[9],
         "pictures": set_picture_list(data[10]),
         "fav_moon_id": data[11],
-        "header_picture": data[12]
+        "header_picture": data[12],
+        "id": data[13]
     }
 
     if params["bestiary"]:
@@ -162,7 +163,8 @@ def entity(id):
 
     return render_template("entities/entity.html",
                            params=params,
-                           title=params["name"])
+                           title=params["name"],
+                           admin=admin)
 
 
 @app.route("/moons")  # Moon list
@@ -302,7 +304,8 @@ def tool(id):
 
     return render_template("tools/tool.html",
                            params=params,
-                           title=params["name"])
+                           title=params["name"],
+                           admin=admin)
 
 
 @app.route("/weathers")  # Weather list
@@ -325,7 +328,7 @@ def weathers():
 @app.route("/weathers/<int:id>")  # Weather data page
 def weather(id):
     data = execute_query('''
-                        SELECT name, description, pictures, header_picture
+                        SELECT name, description, pictures, header_picture, id
                         FROM Weathers
                         WHERE id = ?;''', (id,))
 
@@ -343,7 +346,8 @@ def weather(id):
         "moons": moondata,
         "description": data[1],
         "pictures": set_picture_list(data[2]),
-        "header_picture": data[3]
+        "header_picture": data[3],
+        "id": data[4]
     }
 
     if params["description"]:
@@ -351,7 +355,8 @@ def weather(id):
 
     return render_template("weathers/weather.html",
                            params=params,
-                           title=params["name"])
+                           title=params["name"],
+                           admin=admin)
 
 
 @app.route("/interiors")  # Interior list
@@ -374,7 +379,7 @@ def interiors():
 @app.route("/interiors/<int:id>")  # Interior data page
 def interior(id):
     data = execute_query('''
-                        SELECT name, description, pictures, header_picture
+                        SELECT name, description, pictures, header_picture, id
                         FROM Interiors
                         WHERE id = ?;''', (id,))
 
@@ -387,7 +392,8 @@ def interior(id):
         "name": data[0],
         "description": data[1],
         "pictures": set_picture_list(data[2]),
-        "header_picture": data[3]
+        "header_picture": data[3],
+        "id": data[4]
     }
 
     if params["description"]:
@@ -395,7 +401,8 @@ def interior(id):
 
     return render_template("interiors/interior.html",
                            params=params,
-                           title=params['name'])
+                           title=params['name'],
+                           admin=admin)
 
 
 @app.route("/login")  # Page for the admin login
@@ -651,13 +658,16 @@ def add_moon_image(id):
             return reject_input(f"/admin/moons/addimage/{id}", code_params.invalid_image)
         image_data[0].save(os.path.join(f"{app.config["UPLOAD_FOLDER"]}/Moons/{id}/",
                                         image_data[1]))
+        pictures = execute_query("SELECT pictures FROM Moons WHERE id=?", (id,))[0][0]
+        pictures = set_picture_list(pictures)
+        pictures.append(image_data[1])
+        pictures = " ".join(pictures)
+
         execute_query('''
                       UPDATE Moons
                       SET pictures = ?
-                      WHERE id = ?;''', (str(execute_query('''
-                                                    SELECT pictures
-                                                    FROM Moons
-                                                    WHERE id=?''', (id,))[0][0]) + image_data[1] + " ", id))
+                      WHERE id = ?;''', (pictures, id))
+
         return app.redirect(f"/moons/{id}")
     else:
         return admin_perms_denied()
@@ -703,10 +713,11 @@ def delete_moon_image(moon_id, picture_id):
                       SET pictures = ?
                       WHERE id=?''',
                       (pictures, moon_id))
-        
+
         return app.redirect(f"/moons/{moon_id}")
     else:
         return admin_perms_denied()
+
 
 @app.route("/admin/entity/add")  # Page to add details for a new entity
 def add_entity_page():
@@ -745,10 +756,10 @@ def add_entity():
 
         execute_query('''
                       INSERT INTO Entities (name, danger, bestiary, setting,
-                      fav_moon, sp_hp, mp_hp, power, max_spawned, description, pictures)
-                      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)''',
+                      fav_moon, sp_hp, mp_hp, power, max_spawned, description)
+                      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)''',
                       (name, danger_rating, bestiary, setting, fav_moon, sp_hp,
-                       mp_hp, power, max_spawned, description, "placeholder_image"))
+                       mp_hp, power, max_spawned, description))
         return app.redirect("/entity")
     else:
         return admin_perms_denied()
@@ -772,6 +783,95 @@ def delete_entity(id):
             abort(404)
         execute_query("DELETE FROM Entities WHERE id=?;", (id,))
         return app.redirect("/entity")
+    else:
+        return admin_perms_denied()
+
+
+@app.route("/admin/entity/addimage/<int:id>")
+def add_entity_image_page(id):
+    if admin:
+        global fail_message
+        if not execute_query("SELECT id FROM Entities WHERE id=?", (id,)):
+            abort(404)
+        entity_name = execute_query("SELECT name FROM Entities WHERE id=?;", (id,))
+        submit_message = fail_message
+        fail_message = ""
+        return render_template("entities/entityadminaddimage.html",
+                               name=entity_name[0][0],
+                               title=get_title("/admin/entity/addimage"),
+                               id=id,
+                               message=submit_message)
+    else:
+        return admin_perms_denied()
+
+
+@app.route("/admin/entity/addentityimage/<int:id>", methods=["GET", "POST"])
+def add_entity_image(id):
+    if admin:
+        if not execute_query("SELECT id FROM Entities WHERE id=?", (id,)):
+            abort(404)
+        image_data = process_image("image")
+        if not image_data:
+            return reject_input(f"/admin/entity/addimage/{id}", code_params.invalid_image)
+        image_data[0].save(os.path.join(f"{app.config["UPLOAD_FOLDER"]}/Entities/{id}/",
+                                        image_data[1]))
+        pictures = execute_query("SELECT pictures FROM Entities WHERE id=?", (id,))[0][0]
+        pictures = set_picture_list(pictures)
+        pictures.append(image_data[1])
+        pictures = " ".join(pictures)
+
+        execute_query('''
+                      UPDATE Entities
+                      SET pictures = ?
+                      WHERE id = ?;''', (pictures, id))
+
+        return app.redirect(f"/entity/{id}")
+    else:
+        return admin_perms_denied()
+
+
+@app.route("/admin/entity/deleteimage/<int:id>")
+def delete_entity_image_page(id):
+    if admin:
+        if not execute_query("SELECT id FROM Entities WHERE id=?;", (id,)):
+            abort(404)
+        picture_data = execute_query("SELECT pictures FROM Entities WHERE id=?;", (id,))
+        picture_data = set_picture_list(picture_data[0][0])
+        picture_id = []
+        picture_count = len(picture_data)
+        for i in range(picture_count):
+            picture_id.append(i)
+        return render_template("entities/entityadmindeleteimage.html",
+                               title=get_title("/admin/entity/deleteimage"),
+                               pictures=picture_data,
+                               ids=picture_id,
+                               entity_id=id,
+                               size=picture_count,
+                               name=execute_query("SELECT name FROM Entities WHERE id=?",
+                                                  (id,))[0][0])
+    else:
+        return admin_perms_denied()
+
+
+@app.route("/admin/entity/deleteentityimage/<int:entity_id>/<int:picture_id>")
+def delete_entity_image(entity_id, picture_id):
+    if admin:
+        if not execute_query("SELECT id FROM Entities WHERE id=?", (entity_id,)):
+            abort(404)
+        pictures = execute_query("SELECT pictures FROM Entities WHERE id=?", (entity_id,))
+        pictures = set_picture_list(pictures[0][0])
+        if picture_id < 0 or picture_id >= len(pictures):
+            abort(404)
+        os.remove(f"{app.config["UPLOAD_FOLDER"]}/Entities/{entity_id}/{pictures[picture_id]}")
+        pictures.pop(picture_id)
+        pictures = " ".join(pictures)
+        execute_query('''
+                      UPDATE Entities
+                      SET pictures = ?
+                      WHERE id=?''',
+                      (pictures, entity_id))
+
+        return app.redirect(f"/entity/{entity_id}")
     else:
         return admin_perms_denied()
 
@@ -801,9 +901,9 @@ def add_tool():
 
         execute_query('''
                       INSERT INTO Tools
-                      (name, price, description, upgrade, weight, pictures)
-                      VALUES (?, ?, ?, ?, ?, ?)''',
-                      (name, price, description, upgrade, weight, "placeholder_image"))
+                      (name, price, description, upgrade, weight)
+                      VALUES (?, ?, ?, ?, ?)''',
+                      (name, price, description, upgrade, weight))
 
         return app.redirect("/tools")
     else:
@@ -828,6 +928,95 @@ def delete_tool(id):
             abort(404)
         execute_query("DELETE FROM Tools WHERE id=?", (id,))
         return app.redirect("/tools")
+    else:
+        return admin_perms_denied()
+
+
+@app.route("/admin/tools/addimage/<int:id>")
+def add_tool_image_page(id):
+    if admin:
+        global fail_message
+        if not execute_query("SELECT id FROM Tools WHERE id=?", (id,)):
+            abort(404)
+        tool_name = execute_query("SELECT name FROM Tools WHERE id=?;", (id,))
+        submit_message = fail_message
+        fail_message = ""
+        return render_template("tools/tooladminaddimage.html",
+                               name=tool_name[0][0],
+                               title=get_title("/admin/tools/addimage"),
+                               id=id,
+                               message=submit_message)
+    else:
+        return admin_perms_denied()
+
+
+@app.route("/admin/tools/addtoolimage/<int:id>", methods=["GET", "POST"])
+def add_tool_image(id):
+    if admin:
+        if not execute_query("SELECT id FROM Tools WHERE id=?", (id,)):
+            abort(404)
+        image_data = process_image("image")
+        if not image_data:
+            return reject_input(f"/admin/tools/addimage/{id}", code_params.invalid_image)
+        image_data[0].save(os.path.join(f"{app.config["UPLOAD_FOLDER"]}/Tools/{id}/",
+                                        image_data[1]))
+        pictures = execute_query("SELECT pictures FROM Tools WHERE id=?", (id,))[0][0]
+        pictures = set_picture_list(pictures)
+        pictures.append(image_data[1])
+        pictures = " ".join(pictures)
+
+        execute_query('''
+                      UPDATE Tools
+                      SET pictures = ?
+                      WHERE id = ?;''', (pictures, id))
+
+        return app.redirect(f"/tools/{id}")
+    else:
+        return admin_perms_denied()
+
+
+@app.route("/admin/tools/deleteimage/<int:id>")
+def delete_tool_image_page(id):
+    if admin:
+        if not execute_query("SELECT id FROM Tools WHERE id=?;", (id,)):
+            abort(404)
+        picture_data = execute_query("SELECT pictures FROM Tools WHERE id=?;", (id,))
+        picture_data = set_picture_list(picture_data[0][0])
+        picture_id = []
+        picture_count = len(picture_data)
+        for i in range(picture_count):
+            picture_id.append(i)
+        return render_template("tools/tooladmindeleteimage.html",
+                               title=get_title("/admin/tools/deleteimage"),
+                               pictures=picture_data,
+                               ids=picture_id,
+                               tool_id=id,
+                               size=picture_count,
+                               name=execute_query("SELECT name FROM Tools WHERE id=?",
+                                                  (id,))[0][0])
+    else:
+        return admin_perms_denied()
+
+
+@app.route("/admin/tools/deletetoolimage/<int:tool_id>/<int:picture_id>")
+def delete_tool_image(tool_id, picture_id):
+    if admin:
+        if not execute_query("SELECT id FROM Tools WHERE id=?", (tool_id,)):
+            abort(404)
+        pictures = execute_query("SELECT pictures FROM Tools WHERE id=?", (tool_id,))
+        pictures = set_picture_list(pictures[0][0])
+        if picture_id < 0 or picture_id >= len(pictures):
+            abort(404)
+        os.remove(f"{app.config["UPLOAD_FOLDER"]}/Tools/{tool_id}/{pictures[picture_id]}")
+        pictures.pop(picture_id)
+        pictures = " ".join(pictures)
+        execute_query('''
+                      UPDATE Tools
+                      SET pictures = ?
+                      WHERE id=?''',
+                      (pictures, tool_id))
+
+        return app.redirect(f"/tools/{tool_id}")
     else:
         return admin_perms_denied()
 
@@ -859,9 +1048,9 @@ def add_weather():
         weather_id = execute_query("SELECT id FROM Weathers;")[-1][0] + 1
 
         execute_query('''
-                      INSERT INTO Weathers (name, description, pictures)
-                      VALUES (?, ?, ?)''',
-                      (name, description, "placeholder_image"))
+                      INSERT INTO Weathers (name, description)
+                      VALUES (?, ?)''',
+                      (name, description))
 
         for i in range(len(moon_list)):
             execute_query('''
@@ -897,6 +1086,95 @@ def delete_weather(id):
         return admin_perms_denied()
 
 
+@app.route("/admin/weathers/addimage/<int:id>")
+def add_weather_image_page(id):
+    if admin:
+        global fail_message
+        if not execute_query("SELECT id FROM Weathers WHERE id=?", (id,)):
+            abort(404)
+        weather_name = execute_query("SELECT name FROM Weathers WHERE id=?;", (id,))
+        submit_message = fail_message
+        fail_message = ""
+        return render_template("weathers/weatheradminaddimage.html",
+                               name=weather_name[0][0],
+                               title=get_title("/admin/weathers/addimage"),
+                               id=id,
+                               message=submit_message)
+    else:
+        return admin_perms_denied()
+
+
+@app.route("/admin/weathers/addweatherimage/<int:id>", methods=["GET", "POST"])
+def add_weather_image(id):
+    if admin:
+        if not execute_query("SELECT id FROM Weathers WHERE id=?", (id,)):
+            abort(404)
+        image_data = process_image("image")
+        if not image_data:
+            return reject_input(f"/admin/weathers/addimage/{id}", code_params.invalid_image)
+        image_data[0].save(os.path.join(f"{app.config["UPLOAD_FOLDER"]}/Weathers/{id}/",
+                                        image_data[1]))
+        pictures = execute_query("SELECT pictures FROM Weathers WHERE id=?", (id,))[0][0]
+        pictures = set_picture_list(pictures)
+        pictures.append(image_data[1])
+        pictures = " ".join(pictures)
+
+        execute_query('''
+                      UPDATE Weathers
+                      SET pictures = ?
+                      WHERE id = ?;''', (pictures, id))
+
+        return app.redirect(f"/weathers/{id}")
+    else:
+        return admin_perms_denied()
+
+
+@app.route("/admin/weathers/deleteimage/<int:id>")
+def delete_weather_image_page(id):
+    if admin:
+        if not execute_query("SELECT id FROM Weathers WHERE id=?;", (id,)):
+            abort(404)
+        picture_data = execute_query("SELECT pictures FROM Weathers WHERE id=?;", (id,))
+        picture_data = set_picture_list(picture_data[0][0])
+        picture_id = []
+        picture_count = len(picture_data)
+        for i in range(picture_count):
+            picture_id.append(i)
+        return render_template("weathers/weatheradmindeleteimage.html",
+                               title=get_title("/admin/weathers/deleteimage"),
+                               pictures=picture_data,
+                               ids=picture_id,
+                               weather_id=id,
+                               size=picture_count,
+                               name=execute_query("SELECT name FROM Weathers WHERE id=?",
+                                                  (id,))[0][0])
+    else:
+        return admin_perms_denied()
+
+
+@app.route("/admin/weathers/deleteweatherimage/<int:weather_id>/<int:picture_id>")
+def delete_weather_image(weather_id, picture_id):
+    if admin:
+        if not execute_query("SELECT id FROM Weathers WHERE id=?", (weather_id,)):
+            abort(404)
+        pictures = execute_query("SELECT pictures FROM Weathers WHERE id=?", (weather_id,))
+        pictures = set_picture_list(pictures[0][0])
+        if picture_id < 0 or picture_id >= len(pictures):
+            abort(404)
+        os.remove(f"{app.config["UPLOAD_FOLDER"]}/Weathers/{weather_id}/{pictures[picture_id]}")
+        pictures.pop(picture_id)
+        pictures = " ".join(pictures)
+        execute_query('''
+                      UPDATE Weathers
+                      SET pictures = ?
+                      WHERE id=?''',
+                      (pictures, weather_id))
+
+        return app.redirect(f"/weathers/{weather_id}")
+    else:
+        return admin_perms_denied()
+
+
 @app.route("/admin/interiors/add")  # Page to add details for a new interior
 def add_interior_page():
     if admin:
@@ -912,9 +1190,9 @@ def add_interior():
         name = request.form.get("name")
         description = request.form.get("description").replace("\n", "\\n")
         execute_query('''
-                      INSERT INTO Interiors (name, description, pictures)
-                      VALUES (?, ?, ?)''',
-                      (name, description, "placeholder_image"))
+                      INSERT INTO Interiors (name, description)
+                      VALUES (?, ?)''',
+                      (name, description))
         return app.redirect("/interiors")
     else:
         return admin_perms_denied()
@@ -939,6 +1217,105 @@ def delete_interior(id):
         if not id == 1:
             execute_query("DELETE FROM Interiors WHERE id=?", (id,))
             return app.redirect("/interiors")
+        else:
+            abort(404)
+    else:
+        return admin_perms_denied()
+
+
+@app.route("/admin/interiors/addimage/<int:id>")
+def add_interior_image_page(id):
+    if admin:
+        global fail_message
+        if id == 1:
+            abort(404)
+        if not execute_query("SELECT id FROM Interiors WHERE id=?", (id,)):
+            abort(404)
+        interior_name = execute_query("SELECT name FROM Interiors WHERE id=?;", (id,))
+        submit_message = fail_message
+        fail_message = ""
+        return render_template("interiors/interioradminaddimage.html",
+                               name=interior_name[0][0],
+                               title=get_title("/admin/interiors/addimage"),
+                               id=id,
+                               message=submit_message)
+    else:
+        return admin_perms_denied()
+
+
+@app.route("/admin/interiors/addinteriorimage/<int:id>", methods=["GET", "POST"])
+def add_interior_image(id):
+    if admin:
+        if id == 1:
+            abort(404)
+        if not execute_query("SELECT id FROM Interiors WHERE id=?", (id,)):
+            abort(404)
+        image_data = process_image("image")
+        if not image_data:
+            return reject_input(f"/admin/interiors/addimage/{id}", code_params.invalid_image)
+        image_data[0].save(os.path.join(f"{app.config["UPLOAD_FOLDER"]}/Interiors/{id}/",
+                                        image_data[1]))
+        pictures = execute_query("SELECT pictures FROM Interiors WHERE id=?", (id,))[0][0]
+        pictures = set_picture_list(pictures)
+        pictures.append(image_data[1])
+        pictures = " ".join(pictures)
+
+        execute_query('''
+                      UPDATE Interiors
+                      SET pictures = ?
+                      WHERE id = ?;''', (pictures, id))
+
+        return app.redirect(f"/interiors/{id}")
+    else:
+        return admin_perms_denied()
+
+
+@app.route("/admin/interiors/deleteimage/<int:id>")
+def delete_interior_image_page(id):
+    if admin:
+        if id == 1:
+            abort(404)
+        if not execute_query("SELECT id FROM Interiors WHERE id=?;", (id,)):
+            abort(404)
+        picture_data = execute_query("SELECT pictures FROM Interiors WHERE id=?;", (id,))
+        picture_data = set_picture_list(picture_data[0][0])
+        picture_id = []
+        picture_count = len(picture_data)
+        for i in range(picture_count):
+            picture_id.append(i)
+        return render_template("interiors/interioradmindeleteimage.html",
+                               title=get_title("/admin/interiors/deleteimage"),
+                               pictures=picture_data,
+                               ids=picture_id,
+                               interior_id=id,
+                               size=picture_count,
+                               name=execute_query("SELECT name FROM Interiors WHERE id=?",
+                                                  (id,))[0][0])
+    else:
+        return admin_perms_denied()
+
+
+@app.route("/admin/interiors/deleteinteriorimage/<int:interior_id>/<int:picture_id>")
+def delete_interior_image(interior_id, picture_id):
+    if admin:
+        if interior_id == 1:
+            abort(404)
+        if not execute_query("SELECT id FROM Interiors WHERE id=?", (interior_id,)):
+            abort(404)
+        pictures = execute_query("SELECT pictures FROM Interiors WHERE id=?", (interior_id,))
+        pictures = set_picture_list(pictures[0][0])
+        if picture_id < 0 or picture_id >= len(pictures):
+            abort(404)
+        os.remove(f"{app.config["UPLOAD_FOLDER"]}/Interiors/{interior_id}/{pictures[picture_id]}")
+        pictures.pop(picture_id)
+        pictures = " ".join(pictures)
+        execute_query('''
+                      UPDATE Interiors
+                      SET pictures = ?
+                      WHERE id=?''',
+                      (pictures, interior_id))
+
+        return app.redirect(f"/interiors/{interior_id}")
     else:
         return admin_perms_denied()
 

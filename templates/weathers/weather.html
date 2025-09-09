@@ -4,10 +4,14 @@
 <div class="header-grid">
 <div>
     <h3><a href="/weathers">* BACK</a></h3>
+    {% if admin %}
+    <h2><a href="/admin/weathers/addimage/{{params['id']}}">* Add Image</a></h2>
+    <h2><a href="/admin/weathers/deleteimage/{{params['id']}}">* Remove Image</a></h2>
+    {% endif %}
     <h1>{{title}}</h1>
 </div>
 <div class="header-image-div">
-    <img src="{{url_for('static', filename='images/Weathers/' + params['id'] | string + '/' + params['header_picture'] + '.jpg')}}" alt="placeholder" class="header-image">
+    <img src="{{url_for('static', filename='images/Weathers/' + params['id'] | string + '/' + params['header_picture'])}}" alt="placeholder" class="header-image">
 </div>
 </div>
 {% endblock %}
@@ -27,7 +31,7 @@
 <div class="pictures-grid">
     {% for i in params['pictures'] %}
     <div class="pictures">
-        <img src="../static/images/Weathers/{{params['id']}}/{{i}}.jpg" alt="{{i}}">
+        <img src="../static/images/Weathers/{{params['id']}}/{{i}}" alt="{{i}}">
     </div>
     {% endfor %}
 </div>

@@ -1,0 +1,18 @@
+{% extends "layout.html" %}
+
+{% block header %}
+<h3><a href="/interiors/{{id}}">* BACK</a></h3>
+<h1>Add an image for {{name}}</h1>
+{% endblock %}
+
+{% block content %}
+{% if message %}
+<h1>{{message}}</h1>
+<br>
+{% endif %}
+<form action="/admin/interiors/addinteriorimage/{{id}}" method="post" enctype="multipart/form-data">
+    <input type="file" name="image" accept="image/*" required>
+    <br><br><br>
+    <input type="submit" value="Add Image" class="submit-button">
+</form>
+{% endblock %}

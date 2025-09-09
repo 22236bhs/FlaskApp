@@ -1,0 +1,21 @@
+{% extends "layout.html" %}
+
+{% block header %}
+<h3><a href="/interiors/{{interior_id}}">* BACK</a></h3>
+<h1>Delete an image from {{name}}</h1>
+{% endblock %}
+
+{% block content %}
+<h1>Select an image to delete</h1>
+
+<div class="pictures-grid">
+{% for i in range(size) %}
+<div>
+<a href="/admin/interiors/deleteinteriorimage/{{interior_id}}/{{ids[i]}}">
+    <img class="pictures" src="{{url_for('static', filename='images/Interiors/' + interior_id | string + '/' + pictures[i])}}" alt="{{id}}">
+</a>
+</div>
+{% endfor %}
+</div>
+
+{% endblock %}
