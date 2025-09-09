@@ -6,8 +6,11 @@
 {% endblock %}
 
 {% block content %}
-
-<form action="/admin/addtool" method="post">
+{% if message %}
+<h1>{{message}}</h1>
+<br>
+{% endif %}
+<form action="/admin/addtool" method="post" enctype="multipart/form-data">
     
     <label class="form-label">Name</label>
     <br><br>
@@ -33,6 +36,11 @@
     <label class="form-label">Weight</label>
     <br><br>
     <input type="number" name="weight">
+    <br><br><br>
+
+    <label class="form-label">Header Picture</label>
+    <br><br>
+    <input type="file" name="header_picture" accept="image/*" required>
     <br><br><br>
 
     <input type="submit" value="Add Tool" class="submit-button">

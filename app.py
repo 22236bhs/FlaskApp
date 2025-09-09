@@ -513,13 +513,6 @@ def add_moon():
         fauna = fauna.replace("\n", "\\n")
         description = description.replace("\n", "\\n")
 
-        image_data = process_image("header_picture")
-        if image_data:
-            header_picture = image_data[0]
-            header_picture_name = image_data[1]
-        else:
-            return reject_input("/admin/addmoon", code_params.invalid_image)
-
         if not price:
             price = "0"
 
@@ -578,6 +571,13 @@ def add_moon():
         for i in range(len(weather_entries)):
             if request.form.get("weather" + str(weather_entries[i][0])):
                 weather_list.append(weather_entries[i][0])
+
+        image_data = process_image("header_picture")
+        if image_data:
+            header_picture = image_data[0]
+            header_picture_name = image_data[1]
+        else:
+            return reject_input("/admin/moons/add", code_params.invalid_image)
 
         moon_id = execute_query("SELECT id FROM Moons;")[-1][0] + 1
         os.mkdir(f"{app.config["UPLOAD_FOLDER"]}/Moons/{moon_id}")
@@ -722,12 +722,16 @@ def delete_moon_image(moon_id, picture_id):
 @app.route("/admin/entity/add")  # Page to add details for a new entity
 def add_entity_page():
     if admin:
+        global fail_message
         setting_entries = execute_query("SELECT id, name FROM Setting;")
         moon_entries = execute_query("SELECT id, name FROM Moons;")
+        submit_message = fail_message
+        fail_message = ""
         return render_template("entities/entityadminadd.html",
                                settings=setting_entries,
                                moons=moon_entries,
-                               title=get_title("/admin/entity/add"))
+                               title=get_title("/admin/entity/add"),
+                               message=submit_message)
     else:
         return admin_perms_denied()
 
@@ -754,12 +758,24 @@ def add_entity():
         bestiary = bestiary.replace("\n", "\\n")
         description = description.replace("\n", "\\n")
 
+        image_data = process_image("header_picture")
+        if image_data:
+            header_picture = image_data[0]
+            header_picture_name = image_data[1]
+        else:
+            return reject_input("/admin/entity/add", code_params.invalid_image)
+
+        entity_id = execute_query("SELECT id FROM Entities;")[-1][0] + 1
+        os.mkdir(f"{app.config["UPLOAD_FOLDER"]}/Entities/{entity_id}")
+        header_picture.save(os.path.join(f"{app.config["UPLOAD_FOLDER"]}/Entities/{entity_id}/",
+                                         header_picture_name))
+
         execute_query('''
                       INSERT INTO Entities (name, danger, bestiary, setting,
-                      fav_moon, sp_hp, mp_hp, power, max_spawned, description)
-                      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)''',
+                      fav_moon, sp_hp, mp_hp, power, max_spawned, description, header_picture, pictures)
+                      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)''',
                       (name, danger_rating, bestiary, setting, fav_moon, sp_hp,
-                       mp_hp, power, max_spawned, description))
+                       mp_hp, power, max_spawned, description, header_picture_name, ""))
         return app.redirect("/entity")
     else:
         return admin_perms_denied()
@@ -782,6 +798,10 @@ def delete_entity(id):
         if not execute_query("SELECT id FROM Entities WHERE id=?", (id,)):
             abort(404)
         execute_query("DELETE FROM Entities WHERE id=?;", (id,))
+        directory = f"{app.config["UPLOAD_FOLDER"]}/Entities/{id}"
+        for file in os.listdir(directory):
+            os.remove(f"{directory}/{file}")
+        os.rmdir(directory)
         return app.redirect("/entity")
     else:
         return admin_perms_denied()
@@ -879,8 +899,12 @@ def delete_entity_image(entity_id, picture_id):
 @app.route("/admin/tools/add")  # Page to add details for a new tool
 def add_tool_page():
     if admin:
+        global fail_message
+        submit_message = fail_message
+        fail_message = ""
         return render_template("tools/tooladminadd.html",
-                               title=get_title("/admin/tools/add"))
+                               title=get_title("/admin/tools/add"),
+                               message=submit_message)
     else:
         return admin_perms_denied()
 
@@ -899,11 +923,23 @@ def add_tool():
         else:
             upgrade = 0
 
+        image_data = process_image("header_picture")
+        if image_data:
+            header_picture = image_data[0]
+            header_picture_name = image_data[1]
+        else:
+            return reject_input("/admin/tools/add", code_params.invalid_image)
+
+        tool_id = execute_query("SELECT id FROM Tools;")[-1][0] + 1
+        os.mkdir(f"{app.config["UPLOAD_FOLDER"]}/Tools/{tool_id}")
+        header_picture.save(os.path.join(f"{app.config["UPLOAD_FOLDER"]}/Tools/{tool_id}/",
+                                         header_picture_name))
+
         execute_query('''
                       INSERT INTO Tools
-                      (name, price, description, upgrade, weight)
-                      VALUES (?, ?, ?, ?, ?)''',
-                      (name, price, description, upgrade, weight))
+                      (name, price, description, upgrade, weight, header_picture, pictures)
+                      VALUES (?, ?, ?, ?, ?, ?, ?)''',
+                      (name, price, description, upgrade, weight, header_picture_name, ""))
 
         return app.redirect("/tools")
     else:
@@ -927,6 +963,10 @@ def delete_tool(id):
         if not execute_query("SELECT id FROM Tools WHERE id=?", (id,)):
             abort(404)
         execute_query("DELETE FROM Tools WHERE id=?", (id,))
+        directory = f"{app.config["UPLOAD_FOLDER"]}/Tools/{id}"
+        for file in os.listdir(directory):
+            os.remove(f"{directory}/{file}")
+        os.rmdir(directory)
         return app.redirect("/tools")
     else:
         return admin_perms_denied()
@@ -1024,10 +1064,14 @@ def delete_tool_image(tool_id, picture_id):
 @app.route("/admin/weathers/add")  # Page to add details for a new weather
 def add_weather_page():
     if admin:
+        global fail_message
         moon_entries = execute_query("SELECT id, name FROM Moons")
+        submit_message = fail_message
+        fail_message = ""
         return render_template("weathers/weatheradminadd.html",
                                moons=moon_entries,
-                               title=get_title("/admin/weathers/add"))
+                               title=get_title("/admin/weathers/add"),
+                               message=submit_message)
     else:
         return admin_perms_denied()
 
@@ -1047,10 +1091,21 @@ def add_weather():
 
         weather_id = execute_query("SELECT id FROM Weathers;")[-1][0] + 1
 
+        image_data = process_image("header_picture")
+        if image_data:
+            header_picture = image_data[0]
+            header_picture_name = image_data[1]
+        else:
+            return reject_input("/admin/weathers/add", code_params.invalid_image)
+
+        os.mkdir(f"{app.config["UPLOAD_FOLDER"]}/Weathers/{weather_id}")
+        header_picture.save(os.path.join(f"{app.config["UPLOAD_FOLDER"]}/Weathers/{weather_id}/",
+                                         header_picture_name))
+
         execute_query('''
-                      INSERT INTO Weathers (name, description)
-                      VALUES (?, ?)''',
-                      (name, description))
+                      INSERT INTO Weathers (name, description, header_picture, pictures)
+                      VALUES (?, ?, ?, ?)''',
+                      (name, description, header_picture_name, ""))
 
         for i in range(len(moon_list)):
             execute_query('''
@@ -1081,6 +1136,10 @@ def delete_weather(id):
             abort(404)
         execute_query("DELETE FROM Weathers WHERE id=?", (id,))
         execute_query("DELETE FROM MoonWeathers WHERE weather_id=?", (id,))
+        directory = f"{app.config["UPLOAD_FOLDER"]}/Weathers/{id}"
+        for file in os.listdir(directory):
+            os.remove(f"{directory}/{file}")
+        os.rmdir(directory)
         return app.redirect("/weathers")
     else:
         return admin_perms_denied()
@@ -1178,8 +1237,11 @@ def delete_weather_image(weather_id, picture_id):
 @app.route("/admin/interiors/add")  # Page to add details for a new interior
 def add_interior_page():
     if admin:
+        global fail_message
+        submit_message = fail_message
         return render_template("interiors/interioradminadd.html",
-                               title=get_title("/admin/interiors/add"))
+                               title=get_title("/admin/interiors/add"),
+                               message=submit_message)
     else:
         return admin_perms_denied()
 
@@ -1189,10 +1251,22 @@ def add_interior():
     if admin:
         name = request.form.get("name")
         description = request.form.get("description").replace("\n", "\\n")
+
+        image_data = process_image("header_picture")
+        if image_data:
+            header_picture = image_data[0]
+            header_picture_name = image_data[1]
+        else:
+            return reject_input("/admin/interiors/add", code_params.invalid_image)
+
+        interior_id = execute_query("SELECT id FROM Interiors;")[-1][0] + 1
+        os.mkdir(f"{app.config["UPLOAD_FOLDER"]}/Interiors/{interior_id}")
+        header_picture.save(os.path.join(f"{app.config["UPLOAD_FOLDER"]}/Interiors/{interior_id}/",
+                                         header_picture_name))
         execute_query('''
-                      INSERT INTO Interiors (name, description)
-                      VALUES (?, ?)''',
-                      (name, description))
+                      INSERT INTO Interiors (name, description, header_picture, pictures)
+                      VALUES (?, ?, ?, ?)''',
+                      (name, description, header_picture_name, ""))
         return app.redirect("/interiors")
     else:
         return admin_perms_denied()
@@ -1216,6 +1290,10 @@ def delete_interior(id):
             abort(404)
         if not id == 1:
             execute_query("DELETE FROM Interiors WHERE id=?", (id,))
+            directory = f"{app.config["UPLOAD_FOLDER"]}/Interiors/{id}"
+            for file in os.listdir(directory):
+                os.remove(f"{directory}/{file}")
+            os.rmdir(directory)
             return app.redirect("/interiors")
         else:
             abort(404)
