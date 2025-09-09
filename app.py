@@ -80,6 +80,27 @@ def process_image(name):
     return (file, filename)
 
 
+def get_image_name(name, directory):
+    if name:
+        if not directory:
+            return name
+        if name not in directory:
+            return name
+        og_name = name
+
+        for i in range(len(name)):
+            if name[-1 - i] == ".":
+                index = len(name) - 1 - i
+                break
+        count = 1
+        while name in directory:
+            name = f"{og_name[:index]}({count}){og_name[index:]}"
+            count += 1
+        return name
+    else:
+        return False
+
+
 @app.route("/")  # Home page for selection
 def home():
     params = execute_query('''
@@ -654,13 +675,16 @@ def add_moon_image(id):
         if not execute_query("SELECT id FROM Moons WHERE id=?", (id,)):
             abort(404)
         image_data = process_image("image")
+        image_name = get_image_name(image_data[1],
+                                    os.listdir(f"{app.config["UPLOAD_FOLDER"]}/Moons/{id}"))
+
         if not image_data:
             return reject_input(f"/admin/moons/addimage/{id}", code_params.invalid_image)
         image_data[0].save(os.path.join(f"{app.config["UPLOAD_FOLDER"]}/Moons/{id}/",
-                                        image_data[1]))
+                                        image_name))
         pictures = execute_query("SELECT pictures FROM Moons WHERE id=?", (id,))[0][0]
         pictures = set_picture_list(pictures)
-        pictures.append(image_data[1])
+        pictures.append(image_name)
         pictures = " ".join(pictures)
 
         execute_query('''
@@ -831,13 +855,15 @@ def add_entity_image(id):
         if not execute_query("SELECT id FROM Entities WHERE id=?", (id,)):
             abort(404)
         image_data = process_image("image")
+        image_name = get_image_name(image_data[1],
+                                    os.listdir(f"{app.config["UPLOAD_FOLDER"]}/Entities/{id}"))
         if not image_data:
             return reject_input(f"/admin/entity/addimage/{id}", code_params.invalid_image)
         image_data[0].save(os.path.join(f"{app.config["UPLOAD_FOLDER"]}/Entities/{id}/",
-                                        image_data[1]))
+                                        image_name))
         pictures = execute_query("SELECT pictures FROM Entities WHERE id=?", (id,))[0][0]
         pictures = set_picture_list(pictures)
-        pictures.append(image_data[1])
+        pictures.append(image_name)
         pictures = " ".join(pictures)
 
         execute_query('''
@@ -996,13 +1022,15 @@ def add_tool_image(id):
         if not execute_query("SELECT id FROM Tools WHERE id=?", (id,)):
             abort(404)
         image_data = process_image("image")
+        image_name = get_image_name(image_data[1],
+                                    os.listdir(f"{app.config["UPLOAD_FOLDER"]}/Tools/{id}"))
         if not image_data:
             return reject_input(f"/admin/tools/addimage/{id}", code_params.invalid_image)
         image_data[0].save(os.path.join(f"{app.config["UPLOAD_FOLDER"]}/Tools/{id}/",
-                                        image_data[1]))
+                                        image_name))
         pictures = execute_query("SELECT pictures FROM Tools WHERE id=?", (id,))[0][0]
         pictures = set_picture_list(pictures)
-        pictures.append(image_data[1])
+        pictures.append(image_name)
         pictures = " ".join(pictures)
 
         execute_query('''
@@ -1169,13 +1197,15 @@ def add_weather_image(id):
         if not execute_query("SELECT id FROM Weathers WHERE id=?", (id,)):
             abort(404)
         image_data = process_image("image")
+        image_name = get_image_name(image_data[1],
+                                    os.listdir(f"{app.config["UPLOAD_FOLDER"]}/Weathers/{id}"))
         if not image_data:
             return reject_input(f"/admin/weathers/addimage/{id}", code_params.invalid_image)
         image_data[0].save(os.path.join(f"{app.config["UPLOAD_FOLDER"]}/Weathers/{id}/",
-                                        image_data[1]))
+                                        image_name))
         pictures = execute_query("SELECT pictures FROM Weathers WHERE id=?", (id,))[0][0]
         pictures = set_picture_list(pictures)
-        pictures.append(image_data[1])
+        pictures.append(image_name)
         pictures = " ".join(pictures)
 
         execute_query('''
@@ -1329,13 +1359,15 @@ def add_interior_image(id):
         if not execute_query("SELECT id FROM Interiors WHERE id=?", (id,)):
             abort(404)
         image_data = process_image("image")
+        image_name = get_image_name(image_data[1],
+                                    os.listdir(f"{app.config["UPLOAD_FOLDER"]}/Interiors/{id}"))
         if not image_data:
             return reject_input(f"/admin/interiors/addimage/{id}", code_params.invalid_image)
         image_data[0].save(os.path.join(f"{app.config["UPLOAD_FOLDER"]}/Interiors/{id}/",
-                                        image_data[1]))
+                                        image_name))
         pictures = execute_query("SELECT pictures FROM Interiors WHERE id=?", (id,))[0][0]
         pictures = set_picture_list(pictures)
-        pictures.append(image_data[1])
+        pictures.append(image_name)
         pictures = " ".join(pictures)
 
         execute_query('''
