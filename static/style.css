@@ -26,14 +26,14 @@ cred{
 }
 
 .descriptions{
-    border: 1px solid rgb(83, 221, 58);;
+    border: 1px dashed rgb(83, 221, 58);;
     padding: 10px;
     width: 30%;  
 }
 
 select, input{
     font-size: 150%;
-    border: 1px solid rgb(83, 221, 58);
+    border: 1px dashed rgb(83, 221, 58);
 }
 
 input{

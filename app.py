@@ -115,21 +115,10 @@ def home():
 
 @app.route("/entity", methods=['GET', 'POST'])  # Entity list
 def entities():
-    sort_queries = {
-        "0": ("Alphabetical", "ORDER BY name"),
-        "1": ("Danger", "ORDER BY danger")
-    }
-    sortdir = request.form.get("sortdir")
-    if not sortdir:
-        sortdir = ""
-    sort = request.form.get("sort")
-    if sort:
-        order = sort_queries[sort][1]
-    else:
-        order = sort_queries["0"][1]
     data = execute_query('''
                             SELECT id, name, setting
-                            FROM Entities''' + " " + order + " " + sortdir + ";")
+                            FROM Entities
+                            ORDER BY name;''')
     params = []
     for a in range(3):
         params.append([{
@@ -141,7 +130,7 @@ def entities():
     return render_template("entities/entitylist.html",
                            params=params,
                            title=get_title("/entity"),
-                           sort=sort_queries, admin=admin)
+                           admin=admin)
 
 
 @app.route("/entity/<int:id>")  # Entity data page
@@ -264,23 +253,11 @@ def moon(id):
 
 @app.route("/tools", methods=['GET', 'POST'])  # Tool list
 def tools():
-    sort_queries = {
-        "0": ("Default", ""),
-        "1": ("Alphabetical", "ORDER BY name"),
-        "2": ("Price", "ORDER BY price"),
-    }
-    sort_dir = request.form.get("sortdir")
-    if not sort_dir:
-        sort_dir = ""
-    sort = request.form.get("sort")
-    if sort:
-        order = sort_queries[sort][1]
-    else:
-        order = sort_queries["0"][1]
 
     data = execute_query('''
                         SELECT id, name, upgrade, price
-                        FROM Tools''' + " " + order + " " + sort_dir + ";")
+                        FROM Tools
+                        ORDER BY name;''')
 
     params = []
     for a in range(2):
@@ -293,14 +270,14 @@ def tools():
     return render_template("tools/toollist.html",
                            params=params,
                            title=get_title("/tools"),
-                           sort=sort_queries,
                            admin=admin)
 
 
 @app.route("/tools/<int:id>")  # Tool data page
 def tool(id):
     data = execute_query('''
-                        SELECT name, price, description, upgrade, weight, pictures, id, header_picture
+                        SELECT name, price, description, upgrade, weight,
+                        pictures, id, header_picture
                         FROM Tools
                         WHERE id = ?;''', (id,))
 
