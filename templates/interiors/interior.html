@@ -21,6 +21,16 @@
 <h2>Description: </h2>
 <p class="descriptions">{{ params['description'] | replace('\n', '<br>' | safe)}}</p>
 
+<h2>Moons that most commonly have this interior:</h2>
+{% if moon_data %}
+{% for moon in moon_data %}
+
+<h3><a href="/moons/{{moon[0]}}">* {{moon[1]}}</a></h3>
+
+{% endfor %}
+{% else %}
+<h3>No Moons</h3>
+{% endif %}
 <div class="pictures-grid">
     {% for i in params['pictures'] %}
     <div class="pictures">

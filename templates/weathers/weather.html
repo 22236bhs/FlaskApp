@@ -22,11 +22,15 @@
 <p class="descriptions">{{ params['description'] | replace('\n', '<br>' | safe)}}</p>
 
 <h2>Moons that can have this weather:</h2>
+{% if params["moons"] %}
 {% for moon in params["moons"] %}
 
 <h3><a href="/moons/{{moon[0]}}">* {{moon[1]}}</a></h3>
 
 {% endfor %}
+{% else %}
+<h3>No Moons</h3>
+{% endif %}
 
 <div class="pictures-grid">
     {% for i in params['pictures'] %}

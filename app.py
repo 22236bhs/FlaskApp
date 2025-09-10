@@ -9,7 +9,7 @@ app = Flask(__name__)
 DATABASE = "LCdb.db"
 app.config["UPLOAD_FOLDER"] = code_params.upload_folder
 
-admin = True
+admin = False
 login_message = ""
 fail_message = ""
 
@@ -404,6 +404,11 @@ def interior(id):
                         FROM Interiors
                         WHERE id = ?;''', (id,))
 
+    moon_data = execute_query('''
+                              SELECT id, name
+                              FROM Moons
+                              WHERE interior=?''', (id,))
+
     if not data:
         abort(404)
 
@@ -423,7 +428,8 @@ def interior(id):
     return render_template("interiors/interior.html",
                            params=params,
                            title=params['name'],
-                           admin=admin)
+                           admin=admin,
+                           moon_data=moon_data)
 
 
 @app.route("/login")  # Page for the admin login
