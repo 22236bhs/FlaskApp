@@ -17,7 +17,7 @@
 
 {% for tool in params[0] %}
 
-<h2><a href="/tools/{{tool['id']}}">* {{tool["name"]}} {{tool["price"]}}<cred class="link">▮</cred></a></h2>
+<h2><a href="/tools/{{tool['id']}}">* {{tool["name"]}} <cred class="link">▮</cred>{{tool["price"]}}</a></h2>
 
 {% endfor %}
 
@@ -25,7 +25,7 @@
 
 {% for tool in params[1] %}
 
-<h2><a href="/tools/{{tool['id']}}">* {{tool["name"]}} {{tool["price"]}}<cred class="link">▮</cred></a></h2>
+<h2><a href="/tools/{{tool['id']}}">* {{tool["name"]}} <cred class="link">▮</cred>{{tool["price"]}}</a></h2>
 
 {% endfor %}
 
