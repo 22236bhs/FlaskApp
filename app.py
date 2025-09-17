@@ -9,8 +9,15 @@ app = Flask(__name__)
 DATABASE = "LCdb.db"
 app.config["UPLOAD_FOLDER"] = code_params.upload_folder
 
+#  Boolean to hold if the user is signed in as an admin.
 admin = False
+
+#  The message when the user attempts to log in.
+#  This is a global variable so that multiple routes can access it easily.
 login_message = ""
+
+#  The message when the user fails to use an admin tool properly.
+#  This is a global variable so that multiple routes can access it easily.
 fail_message = ""
 
 
@@ -22,8 +29,8 @@ def execute_query(query, params=()):
 
 def set_picture_list(picture_string):
     '''Formats the picture string into list'''
+    #  Check if the string can be split before splitting it to prevent errors.
     if picture_string:
-
         return picture_string.strip().split(" ")
     else:
         return []
@@ -37,6 +44,7 @@ def admin_perms_denied():
 
 def get_title(route):
     '''Gets the title of a page based on its route'''
+    #  Page titles are stored in the database with the page route as the identifier.
     return execute_query('''
                          SELECT title
                          FROM PageTitles
@@ -45,6 +53,7 @@ def get_title(route):
 
 def push_error(number, code):
     '''Redirect the user to the error page with the given code'''
+    #  The error page has a modular design by just displaying a given error code.
     return render_template("error_page.html",
                            error_code=number,
                            title=f"{number} Error",
@@ -53,13 +62,17 @@ def push_error(number, code):
 
 def reject_input(route, message):
     '''Redirect the user to a page with a message'''
+    #  The user can mess up admin queries in different ways,
+    #  so this is here to tell the user what went wrong.
     global fail_message
     fail_message = message
     return app.redirect(route)
 
 
 def is_number(x):
-    '''Check if the number is able to be converted to a number'''
+    '''Check if the given string is able to be converted to a number'''
+    #  This function would only be called a few times on a page load,
+    #  so the brute force nature of it doesn't hinder the program.
     try:
         int(x)
     except ValueError:
@@ -69,11 +82,17 @@ def is_number(x):
 
 
 def process_image(name):
+    '''Organise file data from an HTML form using the given name'''
+
+    #  Check if the given name has been sent from the HTML form.
+    #  This is to prevent inspect element changes from breaking the code.
     if name not in request.files:
         return False
 
+    #  Get the file data and the name of the file.
     file = request.files[name]
     filename = secure_filename(file.filename)
+    #  Check that the data is valid.
     if not (file and filename and file.name):
         return False
 
@@ -81,17 +100,36 @@ def process_image(name):
 
 
 def get_image_name(name, directory):
+    '''Renames the given file name if it already exists in the given directory'''
+    #  If two files with the same file name are uploaded, deleting one will delete the other.
+    #  To prevent this, this function will ensure that the returned file name will be unqiue.
+    #  For example, if image.png exists already, it will be renamed to image(1).png
+
+    #  Check that the name isn't null to prevent errors.
     if name:
+
+        #  Check if the directory isn't null to prevent errors.
         if not directory:
             return name
+
+        #  If the name is already unique, the function will just return the name.
         if name not in directory:
             return name
+
+        #  Save the original file name so that the name parameter can be modified.
         og_name = name
 
+        #  Search for the last instance of a period, which would be before the file type identifier.
+        #  This is to make sure that the file type isn't messed up if the name is changed.
+        #  Going backwards through the list should be the most efficient way, because the last period is desired.
         for i in range(len(name)):
             if name[-1 - i] == ".":
                 index = len(name) - 1 - i
                 break
+
+        #  Keep changing the file name until it is unique.
+        #  By adding a number in brackets before the file type identifier,
+        #  increasing it would yield a unqiue name at some point.
         count = 1
         while name in directory:
             name = f"{og_name[:index]}({count}){og_name[index:]}"
@@ -101,8 +139,10 @@ def get_image_name(name, directory):
         return False
 
 
-@app.route("/")  # Home page for selection
+@app.route("/")  # Home page for selection.
 def home():
+    #  The home page sections are stored in the database,
+    #  so it needs to be accessed.
     params = execute_query('''
                            SELECT display_name, description, link
                            FROM HomePageLinks;''')
@@ -113,12 +153,16 @@ def home():
                            admin=admin)
 
 
-@app.route("/entity", methods=['GET', 'POST'])  # Entity list
+@app.route("/entity", methods=['GET', 'POST'])  # Entity list.
 def entities():
+    #  Gather entities.
     data = execute_query('''
                             SELECT id, name, setting
                             FROM Entities
                             ORDER BY name;''')
+
+    #  The entities need to be grouped by their setting,
+    #  so the params list will contain a list of each entity for each setting.
     params = []
     for a in range(3):
         params.append([{
@@ -133,8 +177,9 @@ def entities():
                            admin=admin)
 
 
-@app.route("/entity/<int:id>")  # Entity data page
+@app.route("/entity/<int:id>")  # Entity data page.
 def entity(id):
+    #  Gather entity data.
     data = execute_query('''
                         SELECT Entities.name, danger, bestiary, Setting.name,
                         Moons.name, sp_hp, mp_hp, power, max_spawned,
@@ -144,11 +189,18 @@ def entity(id):
                         JOIN Moons ON Entities.fav_moon = Moons.id
                         JOIN Setting ON Entities.setting = Setting.id
                         WHERE Entities.id = ?;''', (id,))
+
+    #  Return a 404 error if the data doesn't exist.
     if not data:
         abort(404)
 
     data = data[0]
 
+    #  The pictures value will convert the given string to a list.
+    #  The picture names are stored as a string in the database,
+    #  containing each file name seperated by spaces.
+    #  set_picture_list converts this to a list,
+    #  to guarantee that the variable is usable and can't be null.
     params = {
         "name": data[0],
         "danger": data[1],
@@ -166,6 +218,12 @@ def entity(id):
         "id": data[13]
     }
 
+    #  Since new lines cannot be stored properly in a string in sql,
+    #  new lines in these strings are replaced with the string "\n".
+    #  The new line strings are converted back into actual new lines,
+    #  after being fetched from the database.
+    #  These variables are also checked to not be null,
+    #  so that .replace doesn't break the program.
     if params["bestiary"]:
         params["bestiary"] = params["bestiary"].replace("\\n", "\n")
     if params["description"]:
@@ -177,13 +235,17 @@ def entity(id):
                            admin=admin)
 
 
-@app.route("/moons")  # Moon list
+@app.route("/moons")  # Moon list.
 def moons():
+    #  Gather moons.
     data = execute_query('''
                         SELECT id, name, price, tier
                         FROM Moons;''')
+
+    #  The moons need to be grouped by their tier,
+    #  so the params list will contain a list of each moon for each tier.
     params = []
-    for a in range(5):
+    for a in range(len(code_params.moon_tiers)):
         params.append([{
             "id": data[i][0],
             "name": data[i][1],
@@ -197,8 +259,9 @@ def moons():
                            moon_tiers=code_params.moon_tiers)
 
 
-@app.route("/moons/<int:id>")  # Moon data page
+@app.route("/moons/<int:id>")  # Moon data page.
 def moon(id):
+    #  Gather moon data.
     data = execute_query('''
                         SELECT Moons.name, RiskLevels.name, price, Interiors.id,
                         Interiors.name, max_indoor_power, max_outdoor_power,
@@ -208,16 +271,24 @@ def moon(id):
                         JOIN RiskLevels ON Moons.risk_level = RiskLevels.id
                         JOIN Interiors ON Moons.interior = Interiors.id
                         WHERE Moons.id = ?;''', (id,))
-
+    #  Return a 404 error if the data doesn't exist.
     if not data:
         abort(404)
 
     data = data[0]
 
+    #  Moons will have weathers that they can have,
+    #  so this needs to be queried seperately,
+    #  since they can have multiple weathers
     weatherdata = execute_query('''
                                 SELECT id, name FROM Weathers WHERE id IN (
                                 SELECT weather_id FROM MoonWeathers WHERE moon_id = ?);''', (id,))
 
+    #  The pictures value will convert the given string to a list.
+    #  The picture names are stored as a string in the database,
+    #  containing each file name seperated by spaces.
+    #  set_picture_list converts this to a list,
+    #  to guarantee that the variable is usable and can't be null.
     params = {
         "name": data[0],
         "risk_level": data[1],
@@ -236,6 +307,12 @@ def moon(id):
         "header_picture": data[14]
     }
 
+    #  Since new lines cannot be stored properly in a string in sql,
+    #  new lines in these strings are replaced with the string "\n".
+    #  The new line strings are converted back into actual new lines,
+    #  after being fetched from the database.
+    #  These variables are also checked to not be null,
+    #  so that .replace doesn't break the program.
     if params["conditions"]:
         params["conditions"] = params["conditions"].replace("\\n", "\n")
     if params["history"]:
@@ -251,14 +328,16 @@ def moon(id):
                            admin=admin)
 
 
-@app.route("/tools", methods=['GET', 'POST'])  # Tool list
+@app.route("/tools", methods=['GET', 'POST'])  # Tool list.
 def tools():
-
+    #  Gather tools.
     data = execute_query('''
                         SELECT id, name, upgrade, price
                         FROM Tools
                         ORDER BY name;''')
 
+    #  The tools need to be grouped by whether they're an upgrade,
+    #  so the params list will contain a list of each tool upgrades and not upgrades.
     params = []
     for a in range(2):
         params.append([{
@@ -273,19 +352,26 @@ def tools():
                            admin=admin)
 
 
-@app.route("/tools/<int:id>")  # Tool data page
+@app.route("/tools/<int:id>")  # Tool data page.
 def tool(id):
+    #  Gather tool data.
     data = execute_query('''
                         SELECT name, price, description, upgrade, weight,
                         pictures, id, header_picture
                         FROM Tools
                         WHERE id = ?;''', (id,))
 
+    #  Return a 404 error if the data doesn't exist.
     if not data:
         abort(404)
 
     data = data[0]
 
+    #  The pictures value will convert the given string to a list.
+    #  The picture names are stored as a string in the database,
+    #  containing each file name seperated by spaces.
+    #  set_picture_list converts this to a list,
+    #  to guarantee that the variable is usable and can't be null.
     params = {
         "name": data[0],
         "price": data[1],
@@ -297,6 +383,12 @@ def tool(id):
         "header_picture": data[7]
     }
 
+    #  Since new lines cannot be stored properly in a string in sql,
+    #  new lines in these strings are replaced with the string "\n".
+    #  The new line strings are converted back into actual new lines,
+    #  after being fetched from the database.
+    #  This variable is also checked to not be null,
+    #  so that .replace doesn't break the program.
     if params["description"]:
         params["description"] = params["description"].replace("\\n", "\n")
 
@@ -306,12 +398,13 @@ def tool(id):
                            admin=admin)
 
 
-@app.route("/weathers")  # Weather list
+@app.route("/weathers")  # Weather list.
 def weathers():
+    #  Gather weathers.
     data = execute_query('''
                         SELECT id, name
                         FROM Weathers;''')
-
+    #  Organise weathers into a list of dictionaries.
     params = [{
         "id": data[i][0],
         "name": data[i][1]
@@ -325,20 +418,30 @@ def weathers():
 
 @app.route("/weathers/<int:id>")  # Weather data page
 def weather(id):
+    #  Gather weather data.
     data = execute_query('''
                         SELECT name, description, pictures, header_picture, id
                         FROM Weathers
                         WHERE id = ?;''', (id,))
 
+    #  Return a 404 error if the data doesn't exist.
     if not data:
         abort(404)
 
     data = data[0]
 
+    #  Weathers will have moons that can have them,
+    #  so this needs to be queried seperately,
+    #  since they can belong to multiple moons.
     moondata = execute_query('''
                             SELECT id, name FROM Moons WHERE id IN (
                             SELECT moon_id FROM MoonWeathers WHERE weather_id=?);''', (id,))
 
+    #  The pictures value will convert the given string to a list.
+    #  The picture names are stored as a string in the database,
+    #  containing each file name seperated by spaces.
+    #  set_picture_list converts this to a list,
+    #  to guarantee that the variable is usable and can't be null.
     params = {
         "name": data[0],
         "moons": moondata,
@@ -348,6 +451,12 @@ def weather(id):
         "id": data[4]
     }
 
+    #  Since new lines cannot be stored properly in a string in sql,
+    #  new lines in these strings are replaced with the string "\n".
+    #  The new line strings are converted back into actual new lines,
+    #  after being fetched from the database.
+    #  This variable is also checked to not be null,
+    #  so that .replace doesn't break the program.
     if params["description"]:
         params["description"] = params["description"].replace("\\n", "\n")
 
@@ -359,10 +468,15 @@ def weather(id):
 
 @app.route("/interiors")  # Interior list
 def interiors():
+    #  Gather interiors.
     data = execute_query('''
                         SELECT id, name
                         FROM Interiors;''')
 
+    #  Organise interiors into a list of dictionaries.
+    #  The first interior in the database is N/A, for moons without an interior.
+    #  N/A should be a constant interior and somewhat hidden interior,
+    #  which is why it won't be displayed.
     params = [{
         "id": data[i][0],
         "name": data[i][1]
@@ -374,23 +488,33 @@ def interiors():
                            admin=admin)
 
 
-@app.route("/interiors/<int:id>")  # Interior data page
+@app.route("/interiors/<int:id>")  # Interior data page.
 def interior(id):
+    #  Gather interior data.
     data = execute_query('''
                         SELECT name, description, pictures, header_picture, id
                         FROM Interiors
                         WHERE id = ?;''', (id,))
 
+    #  Interiors will have moons that have them most commonly,
+    #  so this needs to be queried seperately,
+    #  since they can belong to multiple moons.
     moon_data = execute_query('''
                               SELECT id, name
                               FROM Moons
                               WHERE interior=?''', (id,))
 
+    #  Return a 404 error if the data doesn't exist.
     if not data:
         abort(404)
 
     data = data[0]
 
+    #  The pictures value will convert the given string to a list.
+    #  The picture names are stored as a string in the database,
+    #  containing each file name seperated by spaces.
+    #  set_picture_list converts this to a list,
+    #  to guarantee that the variable is usable and can't be null.
     params = {
         "name": data[0],
         "description": data[1],
@@ -399,6 +523,12 @@ def interior(id):
         "id": data[4]
     }
 
+    #  Since new lines cannot be stored properly in a string in sql,
+    #  new lines in these strings are replaced with the string "\n".
+    #  The new line strings are converted back into actual new lines,
+    #  after being fetched from the database.
+    #  This variable is also checked to not be null,
+    #  so that .replace doesn't break the program.
     if params["description"]:
         params["description"] = params["description"].replace("\\n", "\n")
 
@@ -409,58 +539,81 @@ def interior(id):
                            moon_data=moon_data)
 
 
-@app.route("/login")  # Page for the admin login
+@app.route("/login")  # Page for the admin login.
 def login():
     global login_message
+    #  The login message should only be displayed once,
+    #  so the current login message is stored, and then reset.
     current_login_message = login_message
     login_message = ""
+
     return render_template("login.html",
                            login_message=current_login_message,
                            admin=admin,
+                           #  The usernames and passwords have maximum lengths,
+                           #  so this is passed through as a variable.
                            username_max_length=code_params.username_max_length,
                            password_max_length=code_params.password_max_length,
                            title=get_title("/login"))
 
 
-@app.route("/loginregister", methods=['GET', 'POST'])  # Register the inputted username and password
+@app.route("/loginregister", methods=['GET', 'POST'])  # Register the inputted username and password.
 def loginregister():
     global login_message, admin
+    #  Boolean to store whether the login was a success.
     success = False
+
+    #  The id of the user with the given username.
     userid = 0
+
+    #  Fetch the HTML input data.
     username = request.form.get("username")
     password = request.form.get("password")
 
+    #  Check if username is null.
     if not username:
         login_message = code_params.login_failure_message
         return app.redirect("/login")
 
+    #  Check if password is null.
     if not password:
         login_message = code_params.login_failure_message
         return app.redirect("/login")
 
+    #  Check if the given username is too long.
     if len(username) > code_params.username_max_length:
         login_message = code_params.username_too_large_message
         return app.redirect("/login")
 
+    #  Check if the given password is too long.
     if len(password) > code_params.password_max_length:
         login_message = code_params.password_too_large_message
         return app.redirect("/login")
 
+    # Gather the admin login data.
     userdata = execute_query("SELECT id, username FROM AdminLogins")
+
+    #  Try to find the given username in the admin usernames.
+    #  If the username is found, assign userid to that admin user id.
     for user in userdata:
         if username == user[1]:
 
             success = True
             userid = user[0]
             break
+    #  Check if the given username was found in the admin usernames.
     if success:
         success = False
+        #  Hash the given password and compare it with the stored password hash.
+        #  Storing a hash in the database is much more secure than storing a password,
+        #  and it is still very easy to check if a given password is correct.
         if check_password_hash(execute_query("SELECT passwordhash FROM AdminLogins WHERE id=?",
                                              (userid,))[0][0], password):
+            #  If the password is correct the user will be logged in as admin.
             admin = True
             login_message = code_params.login_success_message
             success = True
-
+    #  If username or password was wrong, return a failure message.
     if not success:
         login_message = code_params.login_failure_message
     return app.redirect("/login")
