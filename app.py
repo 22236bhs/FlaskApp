@@ -873,7 +873,7 @@ def add_moon_image_page(id):
         moon_name = execute_query("SELECT name FROM Moons WHERE id=?;", (id,))
 
         # The fail message should only be displayed once,
-        # so the current fail message is stored, and then reset.       
+        # so the current fail message is stored, and then reset.      
         submit_message = fail_message
         fail_message = ""
         return render_template("moons/moonadminaddimage.html",
@@ -895,7 +895,7 @@ def add_moon_image(id):
         if not execute_query("SELECT id FROM Moons WHERE id=?", (id,)):
             abort(404)
 
-        # Fetch the header picture data,
+        # Fetch the picture data,
         # and reject the submission if it is invalid.
         image_data = process_image("image")
         if not image_data:
@@ -976,7 +976,7 @@ def delete_moon_image(moon_id, picture_id):
             abort(404)
 
         # Delete the picture from the moon folder, remove it from the list,
-        # and readd the string to the database.
+        # and re-add the string to the database.
         os.remove(f"{app.config["UPLOAD_FOLDER"]}/Moons/{moon_id}/{pictures[picture_id]}")
         pictures.pop(picture_id)
         pictures = " ".join(pictures)
@@ -986,7 +986,7 @@ def delete_moon_image(moon_id, picture_id):
                       WHERE id=?''',
                       (pictures, moon_id))
 
-        # Redirect the user to the moon
+        # Redirect the user to the moon data page
         return app.redirect(f"/moons/{moon_id}")
     else:
         # Redirect the user to a page denying admin access.
@@ -1056,12 +1056,12 @@ def add_entity():
         else:
             return reject_input("/admin/entity/add", code_params.invalid_image)
 
-        # Get the next usable id in the Moons table.
+        # Get the next usable id in the Entities table.
         # The base order is by id, so the last id + 1
         # will always be unique.
         entity_id = execute_query("SELECT id FROM Entities;")[-1][0] + 1
 
-        # Create a folder with the moon id as the name in the Moons folder.
+        # Create a folder with the entity id as the name in the Entities folder.
         # UPLOAD_FOLDER is the base directory of the images, being static/images.
         os.mkdir(f"{app.config["UPLOAD_FOLDER"]}/Entities/{entity_id}")
 
@@ -1092,7 +1092,7 @@ def delete_entity_page():
     # Check if the user is logged in as admin.
     if admin:
 
-        # Gather the moon names and ids.
+        # Gather the entity names and ids.
         entity_list = execute_query("SELECT id, name FROM Entities;")
         return render_template("entities/entityadmindelete.html",
                                entities=entity_list,
@@ -1106,27 +1106,44 @@ def delete_entity_page():
 def delete_entity(id):
     # Check if the user is logged in as admin.
     if admin:
+
+        # If the id doesn't belong to the Entities table,
+        # return a 404 error.
         if not execute_query("SELECT id FROM Entities WHERE id=?", (id,)):
             abort(404)
+
+        # Delete the entity.
         execute_query("DELETE FROM Entities WHERE id=?;", (id,))
+
+        # Delete every file in the entity's folder, and delete the folder.
         directory = f"{app.config["UPLOAD_FOLDER"]}/Entities/{id}"
         for file in os.listdir(directory):
             os.remove(f"{directory}/{file}")
         os.rmdir(directory)
+
+        # Redirect the user to the entity list.
         return app.redirect("/entity")
     else:
         # Redirect the user to a page denying admin access.
         return admin_perms_denied()
 
 
-@app.route("/admin/entity/addimage/<int:id>")
+@app.route("/admin/entity/addimage/<int:id>")  # Page to add entity image.
 def add_entity_image_page(id):
     # Check if the user is logged in as admin.
     if admin:
         global fail_message
+
+        # If the id doesn't belong to the Entities table,
+        # return a 404 error.
         if not execute_query("SELECT id FROM Entities WHERE id=?", (id,)):
             abort(404)
+
+        # Fetch the entity name.
         entity_name = execute_query("SELECT name FROM Entities WHERE id=?;", (id,))
+
+        # The fail message should only be displayed once,
+        # so the current fail message is stored, and then reset.
         submit_message = fail_message
         fail_message = ""
         return render_template("entities/entityadminaddimage.html",
@@ -1139,45 +1156,64 @@ def add_entity_image_page(id):
         return admin_perms_denied()
 
 
-@app.route("/admin/entity/addentityimage/<int:id>", methods=["GET", "POST"])
+@app.route("/admin/entity/addentityimage/<int:id>", methods=["GET", "POST"])  # Add entity image.
 def add_entity_image(id):
     # Check if the user is logged in as admin.
     if admin:
+
+        # If the id doesn't belong to the Entities table,
+        # return a 404 error.
         if not execute_query("SELECT id FROM Entities WHERE id=?", (id,)):
             abort(404)
+
+        # Fetch the picture data,
+        # and reject the submission if it is invalid.
         image_data = process_image("image")
         image_name = get_image_name(image_data[1],
                                     os.listdir(f"{app.config["UPLOAD_FOLDER"]}/Entities/{id}"))
         if not image_data:
             return reject_input(f"/admin/entity/addimage/{id}", code_params.invalid_image)
+
+        # Save the picture to entity's folder.
         image_data[0].save(os.path.join(f"{app.config["UPLOAD_FOLDER"]}/Entities/{id}/",
                                         image_name))
+
+        # Update the pictures column in the Entities table.
+        # The string is converted to a list, the new picture name is appended,
+        # it is converted back to a string and put back in the database.
         pictures = execute_query("SELECT pictures FROM Entities WHERE id=?", (id,))[0][0]
         pictures = set_picture_list(pictures)
         pictures.append(image_name)
         pictures = " ".join(pictures)
-
         execute_query('''
                       UPDATE Entities
                       SET pictures = ?
                       WHERE id = ?;''', (pictures, id))
 
+        # Redirect the user to the entity data page.
         return app.redirect(f"/entity/{id}")
     else:
         # Redirect the user to a page denying admin access.
         return admin_perms_denied()
 
 
-@app.route("/admin/entity/deleteimage/<int:id>")
+@app.route("/admin/entity/deleteimage/<int:id>")  # Page for entity image deleting.
 def delete_entity_image_page(id):
     # Check if the user is logged in as admin.
     if admin:
+
+        # If the id doesn't belong to the Entities table,
+        # return a 404 error.
         if not execute_query("SELECT id FROM Entities WHERE id=?;", (id,)):
             abort(404)
+
+        # Fetch the picture string for the entity, and convert it to a list.
         picture_data = execute_query("SELECT pictures FROM Entities WHERE id=?;", (id,))
         picture_data = set_picture_list(picture_data[0][0])
         picture_id = []
         picture_count = len(picture_data)
+
+        # Add all of the picture indexes to a list.
         for i in range(picture_count):
             picture_id.append(i)
         return render_template("entities/entityadmindeleteimage.html",
@@ -1193,16 +1229,25 @@ def delete_entity_image_page(id):
         return admin_perms_denied()
 
 
-@app.route("/admin/entity/deleteentityimage/<int:entity_id>/<int:picture_id>")
+@app.route("/admin/entity/deleteentityimage/<int:entity_id>/<int:picture_id>")  # Delete entity image.
 def delete_entity_image(entity_id, picture_id):
     # Check if the user is logged in as admin.
     if admin:
+
+        # If the id doesn't belong to the Entities table,
+        # return a 404 error.
         if not execute_query("SELECT id FROM Entities WHERE id=?", (entity_id,)):
             abort(404)
+
+        # Fetch the picture string, convert it to a list.
+        # Return a 404 error if the picture index doesn't exist.
         pictures = execute_query("SELECT pictures FROM Entities WHERE id=?", (entity_id,))
         pictures = set_picture_list(pictures[0][0])
         if picture_id < 0 or picture_id >= len(pictures):
             abort(404)
+
+        # Delete the picture from the entity folder, remove it from the list,
+        # and re-add the string to the database.
         os.remove(f"{app.config["UPLOAD_FOLDER"]}/Entities/{entity_id}/{pictures[picture_id]}")
         pictures.pop(picture_id)
         pictures = " ".join(pictures)
@@ -1212,17 +1257,21 @@ def delete_entity_image(entity_id, picture_id):
                       WHERE id=?''',
                       (pictures, entity_id))
 
+        # Redirect the user to the entity data page.
         return app.redirect(f"/entity/{entity_id}")
     else:
         # Redirect the user to a page denying admin access.
         return admin_perms_denied()
 
 
-@app.route("/admin/tools/add")  # Page to add details for a new tool
+@app.route("/admin/tools/add")  # Page to add details for a new tool.
 def add_tool_page():
     # Check if the user is logged in as admin.
     if admin:
         global fail_message
+
+        # The fail message should only be displayed once,
+        # so the current fail message is stored, and then reset.
         submit_message = fail_message
         fail_message = ""
         return render_template("tools/tooladminadd.html",
@@ -1239,15 +1288,22 @@ def add_tool():
     if admin:
         name = request.form.get("name")
         price = request.form.get("price")
-        description = request.form.get("description").replace("\n", "\\n")
         upgrade = request.form.get("upgrade")
         weight = request.form.get("weight")
 
+        # The string needs the new lines to be replaced with "\n",
+        # so that the new lines can be stored properly in the database.
+        description = request.form.get("description").replace("\n", "\\n")
+
+        # Checkboxes return "on" if they are ticked,
+        # so it needs to be converted to a number.
         if upgrade:
             upgrade = 1
         else:
             upgrade = 0
 
+        # Fetch the header picture data,
+        # and reject the submission if it is invalid.
         image_data = process_image("header_picture")
         if image_data:
             header_picture = image_data[0]
@@ -1255,27 +1311,42 @@ def add_tool():
         else:
             return reject_input("/admin/tools/add", code_params.invalid_image)
 
+        # Get the next usable id in the Tools table.
+        # The base order is by id, so the last id + 1
+        # will always be unique.
         tool_id = execute_query("SELECT id FROM Tools;")[-1][0] + 1
+
+        # Create a folder with the tool id as the name in the Tools folder.
+        # UPLOAD_FOLDER is the base directory of the images, being static/images.
         os.mkdir(f"{app.config["UPLOAD_FOLDER"]}/Tools/{tool_id}")
+
+        # Save the picture in the created folder.
         header_picture.save(os.path.join(f"{app.config["UPLOAD_FOLDER"]}/Tools/{tool_id}/",
                                          header_picture_name))
 
+        # This query inserts the tool data collected from the HTML form,
+        # into a new tool.
+        # pictures is kept blank, because they need to be added through
+        # the website.
         execute_query('''
                       INSERT INTO Tools
                       (name, price, description, upgrade, weight, header_picture, pictures)
                       VALUES (?, ?, ?, ?, ?, ?, ?)''',
                       (name, price, description, upgrade, weight, header_picture_name, ""))
 
+        # Redirect the user to the tool list
         return app.redirect("/tools")
     else:
         # Redirect the user to a page denying admin access.
         return admin_perms_denied()
 
 
-@app.route("/admin/tools/delete")  # Page to select a tool to delete
+@app.route("/admin/tools/delete")  # Page to select a tool to delete.
 def delete_tool_page():
     # Check if the user is logged in as admin.
     if admin:
+
+        # Gather the tool names and ids.
         tool_list = execute_query("SELECT id, name FROM Tools;")
         return render_template("tools/tooladmindelete.html",
                                title=get_title("/admin/tools/delete"),
@@ -1285,31 +1356,48 @@ def delete_tool_page():
         return admin_perms_denied()
 
 
-@app.route("/admin/deletetool/<int:id>")  # Delete selected tool
+@app.route("/admin/deletetool/<int:id>")  # Delete selected tool.
 def delete_tool(id):
     # Check if the user is logged in as admin.
     if admin:
+
+        # If the id doesn't belong to the Tools table,
+        # return a 404 error.
         if not execute_query("SELECT id FROM Tools WHERE id=?", (id,)):
             abort(404)
+
+        # Delete the entity.
         execute_query("DELETE FROM Tools WHERE id=?", (id,))
+
+        # Delete every file in the tools's folder, and delete the folder.
         directory = f"{app.config["UPLOAD_FOLDER"]}/Tools/{id}"
         for file in os.listdir(directory):
             os.remove(f"{directory}/{file}")
         os.rmdir(directory)
+
+        # Redirect the user to the tool list.
         return app.redirect("/tools")
     else:
         # Redirect the user to a page denying admin access.
         return admin_perms_denied()
 
 
-@app.route("/admin/tools/addimage/<int:id>")
+@app.route("/admin/tools/addimage/<int:id>")  # Page to add tool images.
 def add_tool_image_page(id):
     # Check if the user is logged in as admin.
     if admin:
         global fail_message
+
+        # If the id doesn't belong to the Entities table,
+        # return a 404 error.
         if not execute_query("SELECT id FROM Tools WHERE id=?", (id,)):
             abort(404)
+
+        # Fetch the tool name.
         tool_name = execute_query("SELECT name FROM Tools WHERE id=?;", (id,))
+
+        # The fail message should only be displayed once,
+        # so the current fail message is stored, and then reset.
         submit_message = fail_message
         fail_message = ""
         return render_template("tools/tooladminaddimage.html",
@@ -1322,45 +1410,63 @@ def add_tool_image_page(id):
         return admin_perms_denied()
 
 
-@app.route("/admin/tools/addtoolimage/<int:id>", methods=["GET", "POST"])
+@app.route("/admin/tools/addtoolimage/<int:id>", methods=["GET", "POST"])  # Add tool image.
 def add_tool_image(id):
     # Check if the user is logged in as admin.
     if admin:
+
+        # If the id doesn't belong to the Tools table,
+        # return a 404 error.
         if not execute_query("SELECT id FROM Tools WHERE id=?", (id,)):
             abort(404)
+
+        # Fetch the picture data,
+        # and reject the submission if it is invalid.
         image_data = process_image("image")
         image_name = get_image_name(image_data[1],
                                     os.listdir(f"{app.config["UPLOAD_FOLDER"]}/Tools/{id}"))
         if not image_data:
             return reject_input(f"/admin/tools/addimage/{id}", code_params.invalid_image)
+
+        # Save the picture to tool's folder.
         image_data[0].save(os.path.join(f"{app.config["UPLOAD_FOLDER"]}/Tools/{id}/",
                                         image_name))
+
+        # Update the pictures column in the Tools table.
+        # The string is converted to a list, the new picture name is appended,
+        # it is converted back to a string and put back in the database.
         pictures = execute_query("SELECT pictures FROM Tools WHERE id=?", (id,))[0][0]
         pictures = set_picture_list(pictures)
         pictures.append(image_name)
         pictures = " ".join(pictures)
-
         execute_query('''
                       UPDATE Tools
                       SET pictures = ?
                       WHERE id = ?;''', (pictures, id))
-
+        # Redirect the user to the tool data page.
         return app.redirect(f"/tools/{id}")
     else:
         # Redirect the user to a page denying admin access.
         return admin_perms_denied()
 
 
-@app.route("/admin/tools/deleteimage/<int:id>")
+@app.route("/admin/tools/deleteimage/<int:id>")  # Page for tool image deleting.
 def delete_tool_image_page(id):
     # Check if the user is logged in as admin.
     if admin:
+
+        # If the id doesn't belong to the Tools table,
+        # return a 404 error.
         if not execute_query("SELECT id FROM Tools WHERE id=?;", (id,)):
             abort(404)
+
+        # Fetch the picture string for the tool, and convert it to a list.
         picture_data = execute_query("SELECT pictures FROM Tools WHERE id=?;", (id,))
         picture_data = set_picture_list(picture_data[0][0])
         picture_id = []
         picture_count = len(picture_data)
+
+        # Add all of the picture indexes to a list.
         for i in range(picture_count):
             picture_id.append(i)
         return render_template("tools/tooladmindeleteimage.html",
@@ -1376,16 +1482,25 @@ def delete_tool_image_page(id):
         return admin_perms_denied()
 
 
-@app.route("/admin/tools/deletetoolimage/<int:tool_id>/<int:picture_id>")
+@app.route("/admin/tools/deletetoolimage/<int:tool_id>/<int:picture_id>")  # Delete tool image.
 def delete_tool_image(tool_id, picture_id):
     # Check if the user is logged in as admin.
     if admin:
+
+        # If the id doesn't belong to the Tools table,
+        # return a 404 error.
         if not execute_query("SELECT id FROM Tools WHERE id=?", (tool_id,)):
             abort(404)
+
+        # Fetch the picture string, convert it to a list.
+        # Return a 404 error if the picture index doesn't exist.
         pictures = execute_query("SELECT pictures FROM Tools WHERE id=?", (tool_id,))
         pictures = set_picture_list(pictures[0][0])
         if picture_id < 0 or picture_id >= len(pictures):
             abort(404)
+
+        # Delete the picture from the tool folder, remove it from the list,
+        # and re-add the string to the database.
         os.remove(f"{app.config["UPLOAD_FOLDER"]}/Tools/{tool_id}/{pictures[picture_id]}")
         pictures.pop(picture_id)
         pictures = " ".join(pictures)
@@ -1395,17 +1510,21 @@ def delete_tool_image(tool_id, picture_id):
                       WHERE id=?''',
                       (pictures, tool_id))
 
+        # Redirect the user to the tool data page.
         return app.redirect(f"/tools/{tool_id}")
     else:
         # Redirect the user to a page denying admin access.
         return admin_perms_denied()
 
 
-@app.route("/admin/weathers/add")  # Page to add details for a new weather
+@app.route("/admin/weathers/add")  # Page to add details for a new weather.
 def add_weather_page():
     # Check if the user is logged in as admin.
     if admin:
         global fail_message
+
+        # The fail message should only be displayed once,
+        # so the current fail message is stored, and then reset.
         moon_entries = execute_query("SELECT id, name FROM Moons")
         submit_message = fail_message
         fail_message = ""
@@ -1418,22 +1537,29 @@ def add_weather_page():
         return admin_perms_denied()
 
 
-@app.route("/admin/addweather", methods=["GET", "POST"])  # Add weather to database
+@app.route("/admin/addweather", methods=["GET", "POST"])  # Add weather to database.
 def add_weather():
     # Check if the user is logged in as admin.
     if admin:
         name = request.form.get("name")
+
+        # The string needs the new lines to be replaced with "\n",
+        # so that the new lines can be stored properly in the database.
         description = request.form.get("description").replace("\n", "\\n")
 
+        # Gather all of the moons in the database.
         moon_entries = execute_query("SELECT id FROM Moons;")
         moon_list = []
 
+        # This checks which moons in the database are selected in the HTML form.
+        # This is done by storing the moon ids that match ticked checkboxes
+        # in a list.
         for i in range(len(moon_entries)):
             if request.form.get("moon" + str(moon_entries[i][0])):
                 moon_list.append(moon_entries[i][0])
 
-        weather_id = execute_query("SELECT id FROM Weathers;")[-1][0] + 1
-
+        # Fetch the header picture data,
+        # and reject the submission if it is invalid.
         image_data = process_image("header_picture")
         if image_data:
             header_picture = image_data[0]
@@ -1441,31 +1567,49 @@ def add_weather():
         else:
             return reject_input("/admin/weathers/add", code_params.invalid_image)
 
+        # Get the next usable id in the Weathers table.
+        # The base order is by id, so the last id + 1
+        # will always be unique.
+        weather_id = execute_query("SELECT id FROM Weathers;")[-1][0] + 1
+
+        # Create a folder with the weather id as the name in the Weathers folder.
+        # UPLOAD_FOLDER is the base directory of the images, being static/images.
         os.mkdir(f"{app.config["UPLOAD_FOLDER"]}/Weathers/{weather_id}")
+
+        # Save the picture in the created folder.
         header_picture.save(os.path.join(f"{app.config["UPLOAD_FOLDER"]}/Weathers/{weather_id}/",
                                          header_picture_name))
 
+        # This query inserts the Weather data collected from the HTML form,
+        # into a new weather.
+        # pictures is kept blank, because they need to be added through
+        # the website.
         execute_query('''
                       INSERT INTO Weathers (name, description, header_picture, pictures)
                       VALUES (?, ?, ?, ?)''',
                       (name, description, header_picture_name, ""))
 
+        # Insert the bridging entries between the new weathers and the moons,
+        # into the bridging table.
         for i in range(len(moon_list)):
             execute_query('''
                           INSERT INTO MoonWeathers (moon_id, weather_id)
                           VALUES (?, ?)''',
                           (moon_list[i], weather_id))
 
+        # Redirect the user to the weather list.
         return app.redirect("/weathers")
     else:
         # Redirect the user to a page denying admin access.
         return admin_perms_denied()
 
 
-@app.route("/admin/weathers/delete")  # Page to select a weather to delete
+@app.route("/admin/weathers/delete")  # Page to select a weather to delete.
 def delete_weather_page():
     # Check if the user is logged in as admin.
     if admin:
+
+        # Gather the weather names and ids.
         weather_list = execute_query("SELECT id, name FROM Weathers;")
         return render_template("weathers/weatheradmindelete.html",
                                title=get_title("/admin/weathers/delete"),
@@ -1475,32 +1619,49 @@ def delete_weather_page():
         return admin_perms_denied()
 
 
-@app.route("/admin/deleteweather/<int:id>")  # Delete selected weather
+@app.route("/admin/deleteweather/<int:id>")  # Delete selected weather.
 def delete_weather(id):
     # Check if the user is logged in as admin.
     if admin:
+        # If the id does not belong in the Moons table,
+        # return a 404 error.
         if not execute_query("SELECT id FROM Weathers WHERE id=?", (id,)):
             abort(404)
+
+        # Delete the weather and the moon-weather bridging entries,
+        # that have the weather id.
         execute_query("DELETE FROM Weathers WHERE id=?", (id,))
         execute_query("DELETE FROM MoonWeathers WHERE weather_id=?", (id,))
+
+        # Delete every file in the weather's folder, and delete the folder.
         directory = f"{app.config["UPLOAD_FOLDER"]}/Weathers/{id}"
         for file in os.listdir(directory):
             os.remove(f"{directory}/{file}")
         os.rmdir(directory)
+
+        # Redirect the user to the weather list.
         return app.redirect("/weathers")
     else:
         # Redirect the user to a page denying admin access.
         return admin_perms_denied()
 
 
-@app.route("/admin/weathers/addimage/<int:id>")
+@app.route("/admin/weathers/addimage/<int:id>")  # Page to add an image to a weather.
 def add_weather_image_page(id):
     # Check if the user is logged in as admin.
     if admin:
         global fail_message
+
+        # If the id does not belong to the weathers table,
+        # return a 404 error.
         if not execute_query("SELECT id FROM Weathers WHERE id=?", (id,)):
             abort(404)
+
+        # Get the name of the moon.
         weather_name = execute_query("SELECT name FROM Weathers WHERE id=?;", (id,))
+
+        # The fail message should only be displayed once,
+        # so the current fail message is stored, and then reset.
         submit_message = fail_message
         fail_message = ""
         return render_template("weathers/weatheradminaddimage.html",
@@ -1513,45 +1674,65 @@ def add_weather_image_page(id):
         return admin_perms_denied()
 
 
-@app.route("/admin/weathers/addweatherimage/<int:id>", methods=["GET", "POST"])
+@app.route("/admin/weathers/addweatherimage/<int:id>", methods=["GET", "POST"])  # Add an image to the weather.
 def add_weather_image(id):
     # Check if the user is logged in as admin.
     if admin:
+
+        # If the id doesn't belong to the Weathers table,
+        # return a 404 error.
         if not execute_query("SELECT id FROM Weathers WHERE id=?", (id,)):
             abort(404)
+
+        # Fetch the picture data,
+        # and reject the submission if it is invalid.
         image_data = process_image("image")
-        image_name = get_image_name(image_data[1],
-                                    os.listdir(f"{app.config["UPLOAD_FOLDER"]}/Weathers/{id}"))
         if not image_data:
             return reject_input(f"/admin/weathers/addimage/{id}", code_params.invalid_image)
+
+        # Make the file name unique.
+        image_name = get_image_name(image_data[1],
+                                    os.listdir(f"{app.config["UPLOAD_FOLDER"]}/Weathers/{id}"))
+
+        # Save the picture in the created folder.
         image_data[0].save(os.path.join(f"{app.config["UPLOAD_FOLDER"]}/Weathers/{id}/",
                                         image_name))
+
+        # Update the pictures column in the Weathers table.
+        # The string is converted to a list, the new picture name is appended,
+        # it is converted back to a string and put back in the database.
         pictures = execute_query("SELECT pictures FROM Weathers WHERE id=?", (id,))[0][0]
         pictures = set_picture_list(pictures)
         pictures.append(image_name)
         pictures = " ".join(pictures)
-
         execute_query('''
                       UPDATE Weathers
                       SET pictures = ?
                       WHERE id = ?;''', (pictures, id))
 
+        # Redirect the user to the weather data page.
         return app.redirect(f"/weathers/{id}")
     else:
         # Redirect the user to a page denying admin access.
         return admin_perms_denied()
 
 
-@app.route("/admin/weathers/deleteimage/<int:id>")
+@app.route("/admin/weathers/deleteimage/<int:id>")  # Page to select an image to delete.
 def delete_weather_image_page(id):
     # Check if the user is logged in as admin.
     if admin:
+        # If the id doesn't belong to the Weathers table,
+        # return a 404 error.
         if not execute_query("SELECT id FROM Weathers WHERE id=?;", (id,)):
             abort(404)
+
+        # Fetch the picture string for the weather, and convert it to a list.
         picture_data = execute_query("SELECT pictures FROM Weathers WHERE id=?;", (id,))
         picture_data = set_picture_list(picture_data[0][0])
         picture_id = []
         picture_count = len(picture_data)
+
+        # Add all of the picture indexes to a list.
         for i in range(picture_count):
             picture_id.append(i)
         return render_template("weathers/weatheradmindeleteimage.html",
@@ -1567,16 +1748,25 @@ def delete_weather_image_page(id):
         return admin_perms_denied()
 
 
-@app.route("/admin/weathers/deleteweatherimage/<int:weather_id>/<int:picture_id>")
+@app.route("/admin/weathers/deleteweatherimage/<int:weather_id>/<int:picture_id>")  # Delete a picture
 def delete_weather_image(weather_id, picture_id):
     # Check if the user is logged in as admin.
     if admin:
+
+        # If the id doesn't belong to the Weathers table,
+        # return a 404 error.
         if not execute_query("SELECT id FROM Weathers WHERE id=?", (weather_id,)):
             abort(404)
+
+        # Fetch the picture string, convert it to a list.
+        # Return a 404 error if the picture index doesn't exist.
         pictures = execute_query("SELECT pictures FROM Weathers WHERE id=?", (weather_id,))
         pictures = set_picture_list(pictures[0][0])
         if picture_id < 0 or picture_id >= len(pictures):
             abort(404)
+
+        # Delete the picture from the weathers folder, remove it from the list,
+        # and re-add the string to the database.
         os.remove(f"{app.config["UPLOAD_FOLDER"]}/Weathers/{weather_id}/{pictures[picture_id]}")
         pictures.pop(picture_id)
         pictures = " ".join(pictures)
@@ -1586,18 +1776,23 @@ def delete_weather_image(weather_id, picture_id):
                       WHERE id=?''',
                       (pictures, weather_id))
 
+        # Redirect the user to the weather data page
         return app.redirect(f"/weathers/{weather_id}")
     else:
         # Redirect the user to a page denying admin access.
         return admin_perms_denied()
 
 
-@app.route("/admin/interiors/add")  # Page to add details for a new interior
+@app.route("/admin/interiors/add")  # Page to add details for a new interior.
 def add_interior_page():
     # Check if the user is logged in as admin.
     if admin:
         global fail_message
+
+        # The fail message should only be displayed once,
+        # so the current fail message is stored, and then reset.
         submit_message = fail_message
+        fail_message = ""
         return render_template("interiors/interioradminadd.html",
                                title=get_title("/admin/interiors/add"),
                                message=submit_message)
@@ -1606,13 +1801,20 @@ def add_interior_page():
         return admin_perms_denied()
 
 
-@app.route("/admin/addinterior", methods=["GET", "POST"])  # Add interior to database
+@app.route("/admin/addinterior", methods=["GET", "POST"])  # Add interior to database.
 def add_interior():
     # Check if the user is logged in as admin.
     if admin:
+
+        # Get all of the data from the HTML form.
         name = request.form.get("name")
+
+        # This string needs the new lines to be replaced with "\n",
+        # so that the new lines can be stored properly in the database.
         description = request.form.get("description").replace("\n", "\\n")
 
+        # Fetch the header picture data,
+        # and reject the submission if it is invalid.
         image_data = process_image("header_picture")
         if image_data:
             header_picture = image_data[0]
@@ -1620,10 +1822,23 @@ def add_interior():
         else:
             return reject_input("/admin/interiors/add", code_params.invalid_image)
 
+        # Get the next usable id in the Interiors table.
+        # The base order is by id, so the last id + 1
+        # will always be unique.
         interior_id = execute_query("SELECT id FROM Interiors;")[-1][0] + 1
+
+        # Create a folder with the interior id as the name in the Interiors folder.
+        # UPLOAD_FOLDER is the base directory of the images, being static/images.
         os.mkdir(f"{app.config["UPLOAD_FOLDER"]}/Interiors/{interior_id}")
+
+        # Save the picture in the created folder.
         header_picture.save(os.path.join(f"{app.config["UPLOAD_FOLDER"]}/Interiors/{interior_id}/",
                                          header_picture_name))
+
+        # This query inserts the interior data collected from the HTML form,
+        # into a new interior.
+        # pictures is kept blank, because they need to be added through
+        # the website.
         execute_query('''
                       INSERT INTO Interiors (name, description, header_picture, pictures)
                       VALUES (?, ?, ?, ?)''',
@@ -1634,10 +1849,12 @@ def add_interior():
         return admin_perms_denied()
 
 
-@app.route("/admin/interiors/delete")  # Page to select an interior to delete
+@app.route("/admin/interiors/delete")  # Page to select an interior to delete.
 def delete_interior_page():
     # Check if the user is logged in as admin.
     if admin:
+
+        # Gather the entity names and ids.
         interior_list = execute_query("SELECT id, name FROM Interiors WHERE NOT id=1;")
         return render_template("interiors/interioradmindelete.html",
                                title=get_title("/admin/interiors/delete"),
@@ -1647,18 +1864,28 @@ def delete_interior_page():
         return admin_perms_denied()
 
 
-@app.route("/admin/deleteinterior/<int:id>")  # Delete selected interior
+@app.route("/admin/deleteinterior/<int:id>")  # Delete selected interior.
 def delete_interior(id):
     # Check if the user is logged in as admin.
     if admin:
+
+        # If the id doesn't belong to the Interiors table,
+        # return a 404 error.
         if not execute_query("SELECT id FROM Interiors WHERE id=?", (id,)):
             abort(404)
+
+        # The interior "N/A" has an id of 1,
+        # and it isn't supposed to be deleted,
+        # so if the id is 1, a 404 error will be returned.
         if not id == 1:
+            # Delete the interior.
             execute_query("DELETE FROM Interiors WHERE id=?", (id,))
+            # Delete every file in the interior's folder, and delete the folder.
             directory = f"{app.config["UPLOAD_FOLDER"]}/Interiors/{id}"
             for file in os.listdir(directory):
                 os.remove(f"{directory}/{file}")
             os.rmdir(directory)
+            # Redirect the user to the interior list.
             return app.redirect("/interiors")
         else:
             abort(404)
@@ -1667,16 +1894,27 @@ def delete_interior(id):
         return admin_perms_denied()
 
 
-@app.route("/admin/interiors/addimage/<int:id>")
+@app.route("/admin/interiors/addimage/<int:id>")  # Page to add interior image.
 def add_interior_image_page(id):
     # Check if the user is logged in as admin.
     if admin:
         global fail_message
+
+        # Return a 404 error if the id is 1,
+        # because the interior shouldn't be edited.
         if id == 1:
             abort(404)
+
+        # If the id doesn't belong to the Entities table,
+        # return a 404 error.
         if not execute_query("SELECT id FROM Interiors WHERE id=?", (id,)):
             abort(404)
+
+        # Fetch the interior name.
         interior_name = execute_query("SELECT name FROM Interiors WHERE id=?;", (id,))
+
+        # The fail message should only be displayed once,
+        # so the current fail message is stored, and then reset.
         submit_message = fail_message
         fail_message = ""
         return render_template("interiors/interioradminaddimage.html",
@@ -1689,31 +1927,46 @@ def add_interior_image_page(id):
         return admin_perms_denied()
 
 
-@app.route("/admin/interiors/addinteriorimage/<int:id>", methods=["GET", "POST"])
+@app.route("/admin/interiors/addinteriorimage/<int:id>", methods=["GET", "POST"])  # Add entity image.
 def add_interior_image(id):
     # Check if the user is logged in as admin.
     if admin:
+
+        # Return a 404 error if the id is 1,
+        # because the interior shouldn't be edited.
         if id == 1:
             abort(404)
+
+        # If the id doesn't belong to the Interiors table,
+        # return a 404 error.
         if not execute_query("SELECT id FROM Interiors WHERE id=?", (id,)):
             abort(404)
+
+        # Fetch the picture data,
+        # and reject the submission if it is invalid.
         image_data = process_image("image")
         image_name = get_image_name(image_data[1],
                                     os.listdir(f"{app.config["UPLOAD_FOLDER"]}/Interiors/{id}"))
         if not image_data:
             return reject_input(f"/admin/interiors/addimage/{id}", code_params.invalid_image)
+
+        # Save the picture to interiors's folder.
         image_data[0].save(os.path.join(f"{app.config["UPLOAD_FOLDER"]}/Interiors/{id}/",
                                         image_name))
+
+        # Update the pictures column in the Interiors table.
+        # The string is converted to a list, the new picture name is appended,
+        # it is converted back to a string and put back in the database.
         pictures = execute_query("SELECT pictures FROM Interiors WHERE id=?", (id,))[0][0]
         pictures = set_picture_list(pictures)
         pictures.append(image_name)
         pictures = " ".join(pictures)
-
         execute_query('''
                       UPDATE Interiors
                       SET pictures = ?
                       WHERE id = ?;''', (pictures, id))
 
+        # Redirect the user to the entity data page.
         return app.redirect(f"/interiors/{id}")
     else:
         # Redirect the user to a page denying admin access.
@@ -1724,14 +1977,24 @@ def add_interior_image(id):
 def delete_interior_image_page(id):
     # Check if the user is logged in as admin.
     if admin:
+
+        # Return a 404 error if the id is 1,
+        # because the interior shouldn't be edited.
         if id == 1:
             abort(404)
+
+        # If the id doesn't belong to the Interiors table,
+        # return a 404 error.
         if not execute_query("SELECT id FROM Interiors WHERE id=?;", (id,)):
             abort(404)
+
+        # Fetch the picture string for the interior, and convert it to a list.
         picture_data = execute_query("SELECT pictures FROM Interiors WHERE id=?;", (id,))
         picture_data = set_picture_list(picture_data[0][0])
         picture_id = []
         picture_count = len(picture_data)
+
+        # Add all of the picture indexes to a list.
         for i in range(picture_count):
             picture_id.append(i)
         return render_template("interiors/interioradmindeleteimage.html",
@@ -1751,14 +2014,23 @@ def delete_interior_image_page(id):
 def delete_interior_image(interior_id, picture_id):
     # Check if the user is logged in as admin.
     if admin:
+
+        # Return a 404 error if the id is 1,
+        # because the interior shouldn't be edited.
         if interior_id == 1:
             abort(404)
+
+        # Fetch the picture string, convert it to a list.
+        # Return a 404 error if the picture index doesn't exist.
         if not execute_query("SELECT id FROM Interiors WHERE id=?", (interior_id,)):
             abort(404)
         pictures = execute_query("SELECT pictures FROM Interiors WHERE id=?", (interior_id,))
         pictures = set_picture_list(pictures[0][0])
         if picture_id < 0 or picture_id >= len(pictures):
             abort(404)
+
+        # Delete the picture from the interior folder, remove it from the list,
+        # and re-add the string to the database.
         os.remove(f"{app.config["UPLOAD_FOLDER"]}/Interiors/{interior_id}/{pictures[picture_id]}")
         pictures.pop(picture_id)
         pictures = " ".join(pictures)
@@ -1768,21 +2040,25 @@ def delete_interior_image(interior_id, picture_id):
                       WHERE id=?''',
                       (pictures, interior_id))
 
+        # Redirect the user to the interior data page.
         return app.redirect(f"/interiors/{interior_id}")
     else:
         # Redirect the user to a page denying admin access.
         return admin_perms_denied()
 
 
-@app.errorhandler(404)  # Page for 404 errors
+@app.errorhandler(404)  # Page for 404 errors.
 def error404(e):
+    # Redirect the user to the error page with a 404 error code.
     return push_error(404, e)
 
 
-@app.errorhandler(500)  # Page for 500 errors
+@app.errorhandler(500)  # Page for 500 errors.
 def error500(e):
+    # Redirect the user to the error page with a 500 error code.
     return push_error(500, e)
 
 
+# Run the code if it is the file being run.
 if __name__ == "__main__":
     app.run(debug=True)
