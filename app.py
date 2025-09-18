@@ -9,6 +9,9 @@ app = Flask(__name__)
 DATABASE = "LCdb.db"
 app.config["UPLOAD_FOLDER"] = code_params.upload_folder
 
+# List to hold the route history of the user
+page_history = []
+
 # Boolean to hold if the user is signed in as an admin.
 admin = False
 

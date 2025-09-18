@@ -20,21 +20,22 @@
 
 <h2>Description: </h2>
 {% if params['description'] %}
-<p class="descriptions">{{ params['description'] | replace('\n', '<br>' | safe)}}</p>
+<p class="descriptions"><span class="info">{{ params['description'] | replace('\n', '<br>' | safe)}}</span></p>
 {% else %}
-<h3 class="descriptions">No Description</h3>
+<h3><span class="info">No Description</span></h3>
 {% endif %}
 
 <h2>Moons that most commonly have this interior:</h2>
 {% if moon_data %}
 {% for moon in moon_data %}
 
-<h3><a href="/moons/{{moon[0]}}">* {{moon[1]}}</a></h3>
+<h3><a href="/moons/{{moon[0]}}"><span class="info link">* {{moon[1]}}</span></a></h3>
 
 {% endfor %}
 {% else %}
-<h3>No Moons</h3>
+<h3><span class="info">No Moons</span></h3>
 {% endif %}
+<h2>Gallery:</h2>
 <div class="pictures-grid">
     {% for i in params['pictures'] %}
     <div class="pictures">

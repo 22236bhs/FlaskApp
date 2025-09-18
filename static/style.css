@@ -26,7 +26,7 @@ cred{
 }
 
 .descriptions{
-    border: 1px dashed rgb(83, 221, 58);;
+    border: 1px dashed rgb(240, 192, 0);;
     padding: 10px;
     width: 30%;
     font-size: 110%;
@@ -119,4 +119,12 @@ img{
 
 .page-header{
     font-size: 250%;
+}
+
+span.info{
+    color: rgb(240, 192, 0);
+}
+
+span.link:hover{
+    color: inherit;
 }

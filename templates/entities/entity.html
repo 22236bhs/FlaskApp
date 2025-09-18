@@ -18,35 +18,36 @@
 
 {% block content %}
 
-<h2>Danger Rating: {{params["danger"]}}/10</h2>
+<h2>Danger Rating: <span class="info">{{params["danger"]}}/10</span></h2>
 {% if params["sp_hp"] == params["mp_hp"] %}
 <h2>
     {% if params["sp_hp"] == -1 %}
-    Health: Invincible
+    Health: <span class="info">Invincible</span>
     {% else %}
-    Health: {{params["sp_hp"]}} HP
+    Health: <span class="info">{{params["sp_hp"]}} HP</span>
     {% endif %}
 </h2>
 {% else %}
-<h2>Single Player Health: {{params["sp_hp"]}} HP</h2>
-<h2>Multiplayer Health: {{params["mp_hp"]}} HP</h2>
+<h2>Single Player Health: <span class="info">{{params["sp_hp"]}} HP</span></h2>
+<h2>Multiplayer Health: <span class="info">{{params["mp_hp"]}} HP</span></h2>
 {% endif %}
-<h2>Power Level: {{params["power"]}}</h2>
-<h2>Max Spawn Count: {{params["max_spawned"]}}</h2>
-<h2>Favourite Moon: <a href="/moons/{{params['fav_moon_id']}}">{{params["fav_moon"]}}</a></h2>
-<h2>Spawns: {{params["setting"]}}</h2>
+<h2>Power Level: <span class="info">{{params["power"]}}</span></h2>
+<h2>Max Spawn Count: <span class="info">{{params["max_spawned"]}}</span></h2>
+<h2>Favourite Moon: <a href="/moons/{{params['fav_moon_id']}}"><span class="link info">{{params["fav_moon"]}}</span></a></h2>
+<h2>Spawns: <span class="info">{{params["setting"]}}</span></h2>
 <h2>Bestiary: </h2>
 {% if params['bestiary'] %}
-<p class="descriptions">{{ params['bestiary'] | replace('\n', '<br>' | safe)}}</p>
+<p class="descriptions"><span class="info">{{ params['bestiary'] | replace('\n', '<br>' | safe)}}</span></p>
 {% else %}
-<h3 class="descriptions">No Bestiary</h3>
+<h3><span class="info">No Bestiary</span></h3>
 {% endif %}
 <h2>My Description: </h2>
 {% if params['description'] %}
-<p class="descriptions">{{ params['description'] | replace('\n', '<br>' | safe)}}</p>
+<p class="descriptions"><span class="info">{{ params['description'] | replace('\n', '<br>' | safe)}}</span></p>
 {% else %}
-<h3 class="descriptions">No Description</h3>
+<h3>No Description</h3>
 {% endif %}
+<h2>Gallery:</h2>
 <div class="pictures-grid">
     {% for i in params['pictures'] %}
     <div class="pictures">

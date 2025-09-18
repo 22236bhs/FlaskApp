@@ -18,28 +18,28 @@
 
 {% block content %}
 
-<h2>Price: <cred>▮</cred>{{params["price"]}}</h2>
+<h2>Price: <cred>▮</cred><span class="info">{{params["price"]}}</span></h2>
 
 {% if params['upgrade'] == 1 %}
-<h2>Type: Ship Upgrade</h2>
+<h2>Type: <span class="info">Ship Upgrade</span></h2>
 {% else %}
-<h2>Type: Item</h2>
+<h2>Type: <span class="info">Item</span></h2>
 <h2>
     {% if params["weight"] == -1 %}
-    Weight: Cannot be picked up
+    Weight: <span class="info">Cannot be picked up</span>
     {% else %}
-    Weight: {{params["weight"]}} lbs
+    Weight: <span class="info">{{params["weight"]}} lbs</span>
     {% endif %}
 </h2>
 {% endif %}
 
 <h2>Description:</h2>
 {% if params['description'] %}
-<p class="descriptions">{{ params['description'] | replace('\n', '<br>' | safe)}}</p>
+<p class="descriptions"><span class="info">{{ params['description'] | replace('\n', '<br>' | safe)}}</span></p>
 {% else %}
-<h3 class="descriptions">No Description</h3>
+<h3><span class="info">No Description  </h3>
 {% endif %}
-
+<h2>Gallery:</h2>
 <div class="pictures-grid">
     {% for i in params['pictures'] %}
     <div>
