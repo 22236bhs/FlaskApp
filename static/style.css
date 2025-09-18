@@ -28,7 +28,8 @@ cred{
 .descriptions{
     border: 1px dashed rgb(83, 221, 58);;
     padding: 10px;
-    width: 30%;  
+    width: 30%;
+    font-size: 110%;
 }
 
 select, input{
