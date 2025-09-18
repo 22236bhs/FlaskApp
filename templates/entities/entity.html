@@ -8,7 +8,7 @@
     <h2><a href="/admin/entity/addimage/{{params['id']}}">* Add Image</a></h2>
     <h2><a href="/admin/entity/deleteimage/{{params['id']}}">* Remove Image</a></h2>
     {% endif %}
-    <h1>{{title}}</h1>
+    <h1 class="page-header">{{title}}</h1>
 </div>
 <div class="header-image-div">
     <img src="{{url_for('static', filename='images/Entities/' + params['id'] | string + '/' + params['header_picture'])}}" alt="placeholder" class="header-image">
@@ -36,9 +36,17 @@
 <h2>Favourite Moon: <a href="/moons/{{params['fav_moon_id']}}">{{params["fav_moon"]}}</a></h2>
 <h2>Spawns: {{params["setting"]}}</h2>
 <h2>Bestiary: </h2>
+{% if params['bestiary'] %}
 <p class="descriptions">{{ params['bestiary'] | replace('\n', '<br>' | safe)}}</p>
+{% else %}
+<h3 class="descriptions">No Bestiary</h3>
+{% endif %}
 <h2>My Description: </h2>
+{% if params['description'] %}
 <p class="descriptions">{{ params['description'] | replace('\n', '<br>' | safe)}}</p>
+{% else %}
+<h3 class="descriptions">No Description</h3>
+{% endif %}
 <div class="pictures-grid">
     {% for i in params['pictures'] %}
     <div class="pictures">

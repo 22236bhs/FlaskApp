@@ -7,32 +7,41 @@
 <h2><a href="/admin/entity/add">* Add Entity</a></h2>
 <h2><a href="/admin/entity/delete">* Remove Entity</a></h2>
 {% endif %}
-<h1>Welcome to the Entity List</h1>
+<h1 class="page-header">Welcome to the Entity List</h1>
 
 {% endblock %}
 
 {% block content %}
-
-<h1>Indoor Entities:</h1>
+<div class="grouping-border">
+<h1 class="group-header">Indoor Entities</h1>
 {% for entity in params[0] %}
 
 <h2><a href="/entity/{{entity['id']}}">* {{entity["name"]}}</a></h2>
 
 {% endfor %}
 
-<h1>Outdoor Entities at Nighttime</h1>
+</div>
+<br>
+<div class="grouping-border">
+
+<h1 class="group-header">Outdoor Entities at Nighttime</h1>
 {% for entity in params[1] %}
 
 <h2><a href="/entity/{{entity['id']}}">* {{entity["name"]}}</a></h2>
 
 {% endfor %}
 
-<h1>Outdoor Entities at Daytime</h1>
+</div>
+<br>
+<div class="grouping-border">
+
+<h1 class="group-header">Outdoor Entities at Daytime</h1>
 {% for entity in params[2] %}
 
 <h2><a href="/entity/{{entity['id']}}">* {{entity["name"]}}</a></h2>
 
 {% endfor %}
 
+</div>
 
 {% endblock %}

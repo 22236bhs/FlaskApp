@@ -7,7 +7,7 @@
 <h2><a href="/admin/moons/add">* Add Moon</a></h2>
 <h2><a href="/admin/moons/delete">* Remove Moon</a></h2>
 {% endif %}
-<h1>Welcome to the Moon Catalogue</h1>
+<h1 class="page-header">Welcome to the Moon Catalogue</h1>
 
 {% endblock %}
 
@@ -15,7 +15,7 @@
 
 {% for i in range(5) %}
 <div class="grouping-border">
-<h1 class="moon-group-header">{{moon_tiers[i]}}</h1>
+<h1 class="group-header">{{moon_tiers[i]}}</h1>
 <br>
 {% for moon in params[i] %}
 

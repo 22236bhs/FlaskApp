@@ -7,7 +7,7 @@
 <h2><a href="/admin/weathers/add">* Add Weather</a></h2>
 <h2><a href="/admin/weathers/delete">* Remove Weather</a></h2>
 {% endif %}
-<h1>Welcome to the Weather List</h1>
+<h1 class="page-header">Welcome to the Weather List</h1>
 
 {% endblock %}
 
@@ -15,7 +15,7 @@
 
 {% for weather in params %}
 
-<h2><a href="/weathers/{{weather['id']}}">* {{weather["name"]}}</a></h2>
+<h1><a href="/weathers/{{weather['id']}}">* {{weather["name"]}}</a></h1>
 
 {% endfor %}
 

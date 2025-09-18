@@ -8,7 +8,7 @@
     <h2><a href="/admin/tools/addimage/{{params['id']}}">* Add Image</a></h2>
     <h2><a href="/admin/tools/deleteimage/{{params['id']}}">* Remove Image</a></h2>
     {% endif %}
-    <h1>{{title}}</h1>
+    <h1 class="page-header">{{title}}</h1>
 </div>
 <div class="header-image-div">
     <img src="{{url_for('static', filename='images/Tools/' + params['id'] | string + '/' + params['header_picture'])}}" alt="placeholder" class="header-image">
@@ -34,7 +34,11 @@
 {% endif %}
 
 <h2>Description:</h2>
+{% if params['description'] %}
 <p class="descriptions">{{ params['description'] | replace('\n', '<br>' | safe)}}</p>
+{% else %}
+<h3 class="descriptions">No Description</h3>
+{% endif %}
 
 <div class="pictures-grid">
     {% for i in params['pictures'] %}

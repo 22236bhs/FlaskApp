@@ -84,8 +84,9 @@ a:hover{
     padding-left: 2%;
 }
 
-.moon-group-header{
-    text-decoration: underline;
+.group-header{
+    color: rgb(78, 252, 47);
+    font-weight: bold;
 }
 
 .header-grid{
@@ -114,3 +115,6 @@ img{
     text-align: right;
 }
 
+.page-header{
+    font-size: 250%;
+}

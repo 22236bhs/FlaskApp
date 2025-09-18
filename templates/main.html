@@ -6,7 +6,7 @@
 {% else %}
 <h2><a href="/login">* ADMIN LOGIN</a></h2>
 {% endif %}
-<h1>Lethal Company Guide</h1>
+<h1 class="page-header">Lethal Company Guide</h1>
 
 {% endblock %}
 {% block content %}
@@ -15,11 +15,12 @@
 <div class="home-page-link">
     <a href="{{param[2]}}">
         <div class="link">
-        <h2 class="link">{{param[0]}}</h2>
-        <h3 class="link">{{param[1]}}</h3>
+        <h1 class="link">{{param[0]}}</h2>
+        <h2 class="link">{{param[1]}}</h3>
         </div>
     </a>
 </div>
+<br>
 {% endfor %}
 
 {% endblock %}

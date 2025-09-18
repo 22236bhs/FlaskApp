@@ -8,7 +8,7 @@
     <h2><a href="/admin/moons/addimage/{{params['id']}}">* Add Image</a></h2>
     <h2><a href="/admin/moons/deleteimage/{{params['id']}}">* Remove Image</a></h2>
     {% endif %}
-    <h1>{{title}}</h1>
+    <h1 class="page-header">{{title}}</h1>
 </div>
 <div class="header-image-div">
     <img src="{{url_for('static', filename='images/Moons/' + params['id'] | string + '/' + params['header_picture'])}}" alt="Header Image" class="header-image">
@@ -34,13 +34,29 @@
 <h2>Maximum Indoor Power: {{params["max_indoor_power"]}}</h2>
 <h2>Maximum Outdoor Power: {{params["max_outdoor_power"]}}</h2>
 <h2>Conditions:</h2>
+{% if params['conditions'] %}
 <p class="descriptions">{{ params["conditions"] | replace('\n', '<br>' | safe)}}</p>
+{% else %}
+<h3 class="descriptions">No Data</h3>
+{% endif %}
 <h2>History:</h2>
+{% if params['history'] %}
 <p class="descriptions">{{ params["history"] | replace('\n', '<br>' | safe)}}</p>
+{% else %}
+<h3 class="descriptions">No Data</h3>
+{% endif %}
 <h2>Fauna:</h2>
+{% if params['fauna'] %}
 <p class="descriptions">{{ params["fauna"] | replace('\n', '<br>' | safe)}}</p>
+{% else %}
+<h3 class="descriptions">No Data</h3>
+{% endif %}
 <h2>Description:</h2>
+{% if params['description'] %}
 <p class="descriptions">{{ params["description"] | replace('\n', '<br>' | safe)}}</p>
+{% else %}
+<h3 class="descriptions">No Description</h3>
+{% endif %}
 <h2>Possible Weathers: </h2>
 {% if params["weathers"] %}
 {% for weather in params["weathers"] %}
