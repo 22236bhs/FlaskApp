@@ -873,7 +873,7 @@ def add_moon_image_page(id):
         moon_name = execute_query("SELECT name FROM Moons WHERE id=?;", (id,))
 
         # The fail message should only be displayed once,
-        # so the current fail message is stored, and then reset.      
+        # so the current fail message is stored, and then reset.
         submit_message = fail_message
         fail_message = ""
         return render_template("moons/moonadminaddimage.html",
