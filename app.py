@@ -6,7 +6,7 @@ import code_params
 import os
 
 app = Flask(__name__)
-DATABASE = "LCdb.db"
+DATABASE = "LC.db"
 app.config["UPLOAD_FOLDER"] = code_params.upload_folder
 
 # List to hold the route history of the user
@@ -1039,6 +1039,50 @@ def add_entity():
         max_spawned = request.form.get("max_spawned")
         description = request.form.get("description")
 
+        # If the name is null, reject the submission.
+        if not name:
+            return reject_input("/admin/entity/add", code_params.invalid_input)
+
+        # If the danger raing is null, make it 0.
+        if not danger_rating:
+            danger_rating = "0"
+
+        # If sp hp is null, make it 0.
+        if not sp_hp:
+            sp_hp = "0"
+
+        # If mp hp is null, make it 0.
+        if not mp_hp:
+            mp_hp = "0"
+
+        # If power is null, make it 0.
+        if not power:
+            power = "0"
+
+        # If max spawned is null, make it 0.
+        if not max_spawned:
+            max_spawned = "0"
+
+        # If danger rating isn't a number, reject the submission.
+        if not is_number(danger_rating):
+            return reject_input("/admin/entity/add", code_params.invalid_input)
+
+        # If sp hp isn't a number, reject the submission.
+        if not is_number(sp_hp):
+            return reject_input("/admin/entity/add", code_params.invalid_input)
+
+        # If mp hp isn't a number, reject the submission.
+        if not is_number(mp_hp):
+            return reject_input("/admin/entity/add", code_params.invalid_input)
+
+        # If power isn't a number, reject the submission.
+        if not is_number(power):
+            return reject_input("/admin/entity/add", code_params.invalid_input)
+
+        # If max spawned isn't a number, reject the submission.
+        if not is_number(max_spawned):
+            return reject_input("/admin/entity/add", code_params.invalid_input)
+
         # if the entity is invincible, make the health values -1,
         # because entity page will display invincible if its health is -1.
         if invincible:
@@ -1298,6 +1342,26 @@ def add_tool():
         # so that the new lines can be stored properly in the database.
         description = request.form.get("description").replace("\n", "\\n")
 
+        # If the name is null, reject the submission.
+        if not name:
+            return reject_input("/admin/tools/add", code_params.invalid_input)
+
+        # If the price is null, make it 0.
+        if not price:
+            price = "0"
+
+        # If the weight is null, make it 0.
+        if not weight:
+            weight = "0"
+
+        # If the price isn't a number, reject the submission.
+        if not is_number(price):
+            return reject_input("/admin/tools/add", code_params.invalid_input)
+
+        # If the weight isn't a number, reject the submission.
+        if not is_number(weight):
+            return reject_input("/admin/tools/add", code_params.invalid_input)
+
         # Checkboxes return "on" if they are ticked,
         # so it needs to be converted to a number.
         if upgrade:
@@ -1544,7 +1608,11 @@ def add_weather_page():
 def add_weather():
     # Check if the user is logged in as admin.
     if admin:
+        # Get all of the data from the HTML form.
         name = request.form.get("name")
+
+        if not name:
+            return reject_input("/admin/weathers/add", code_params.invalid_input)
 
         # The string needs the new lines to be replaced with "\n",
         # so that the new lines can be stored properly in the database.
@@ -1812,6 +1880,8 @@ def add_interior():
         # Get all of the data from the HTML form.
         name = request.form.get("name")
 
+        if not name:
+            return reject_input("/admin/interiors/add", code_params.invalid_input)
         # This string needs the new lines to be replaced with "\n",
         # so that the new lines can be stored properly in the database.
         description = request.form.get("description").replace("\n", "\\n")
